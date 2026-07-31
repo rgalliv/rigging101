@@ -131,4 +131,61 @@ don't cover.
 
 ---
 
-*Orientation-level review. Code references are to `index.html` at commit `efe2b1a`.*
+## 6. Deep-dive update — Second Brain file harvest (2026-07-31)
+
+Five parallel reads of the Google Drive corpus ("AI Authority - Crane and Rigging",
+"Rigging Scenerios/Cards" folders, WD-RIG and EQ-TRAIN-004 curriculum) drove the
+implemented changes below. Sections 1–3 of this review are now largely addressed.
+
+**Implemented from sources:**
+
+- **L/H framing** — every worked example in the corpus (Drifting With Chain Hoist
+  workshop, Rigging Worksheet v2, NCCCO booklet, DOE TR244C, the Colorado Crane
+  Operator School card) teaches load angle factor as sling Length ÷ Height, never
+  1/sin. The readout now labels the factor "L÷H" and the caveat teaches the tape-
+  measure method.
+- **Off-center CG mode** — implements the opposite-distance share method exactly as
+  taught (leg nearer the CG carries the larger share; workshop examples: 16,000 lb →
+  9,600/6,400; 55,000 lb → 49,500/28,875 with per-leg L/H).
+- **Angle-of-choke advisor** — WD-RIG-002's exact table (>120° = 100%, 90–120° = 87%,
+  60–89° = 74%) with the choker-rating context (wire rope ≈75% of vertical, chain and
+  synthetics ≈80%).
+- **D/d advisor** — WD-RIG-002/NCCCO table (25:1 = 100% → 8:1 = 83%; ≈50% near 1:1).
+- **Knowledge check 8 → 13 questions**, answers de-patterned (old key was a cyclic
+  0,1,2,3,0,1,2,3). New scenarios sourced from: rigging quiz Q5 (21,000/7,000 lb CG
+  split), Stage 2 M1 (weakest-link 20k/15k/25k), Stage 2 M2 (single valley break),
+  the choke-angle rule, and the workshop asymmetric split.
+- **Component lessons enriched** with source-exact numbers: hook saddle→tip 100→40%,
+  shackle side-load 30%/50% and ≤120° included angle, broken-wire counts 10/lay –
+  5/strand + valley-break rule, D/d ladder, four-step tag check, eyebolt 45° ≈ 1/3
+  rating, CG swing behavior and near-leg share, tag-line knots, red core warning yarn.
+
+**Source defects found — do not propagate (flag to SME):**
+
+1. WD-RIG-001 S1Q1 answer key marks D ("Lift Director or Signal Person") though the
+   stem asks for the *only* person authorized to signal.
+2. WD-RIG-003's "Up Next" slide points backwards to WD-RIG-002.
+3. Stage 2 M2 Final KC Q2/Q4 contain leftover think-aloud text inside answer options.
+4. Rigging Card 3.0 says "30° multiply rated capacity by 2.00" — 2.00 is the tension
+   factor at 30°; its own table shows the 30° capacity factor is 1.00.
+5. RIGGING STUFF 2 states wire-rope-clip placement backwards ("saddle on the dead
+   end") — the rule is saddle on the live end.
+6. SWIPE-Rigging.docx contains no SWIPE mnemonic (it holds ITI's "dirty words" list,
+   the 8-part lift-plan framework, and documented-inspection rules).
+7. The "4 HR Rigger Test" has no answer key in the file; the "rigging quiz" promises
+   answers that aren't in the extractable text.
+
+**Unread/unrecoverable sources worth re-supplying:** "Sling Tension.jpg",
+"Sling Length Example.jpg", the Rigger 2 Incline Plane doc (figure-only), and
+"3D Objects.docx" (empty extraction) — re-save as OCR-able PNGs or paste into a doc
+if their content matters.
+
+**Still open (future candidates):** interactive tag reader, weakest-link assembly
+builder, crown-vs-valley triage game, shift-inspection sequence drill, NCCCO practical
+configuration cards (single/double wrap, choker direction) as Decision 2/4 scenarios,
+and the 85%-of-SWL substitution rule from the RMS lift plan as a seventh decision.
+
+---
+
+*Orientation-level review. Code references are to `index.html` at commit `efe2b1a`;
+the deep-dive changes land in subsequent commits on this branch.*
