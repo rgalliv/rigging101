@@ -1,0 +1,55 @@
+{
+  "module": "RIG101",
+  "kind": "field-lab",
+  "version": "2026.07",
+  "salt": "CQ1:RIG101_FieldLab",
+  "next": "S4_M01",
+  "completion_events": [
+    "cq-module-complete",
+    "cq-lab-complete"
+  ],
+  "gate": [
+    "RIG101_q1",
+    "RIG101_q2",
+    "RIG101_q3",
+    "RIG101_q4",
+    "RIG101_q5",
+    "RIG101_q6",
+    "RIG101_q7",
+    "RIG101_q8",
+    "RIG101_q9",
+    "RIG101_q10",
+    "RIG101_q11",
+    "RIG101_q12",
+    "RIG101_q13"
+  ],
+  "decisions": [
+    "RIG101_d1",
+    "RIG101_d2",
+    "RIG101_d3",
+    "RIG101_d4",
+    "RIG101_d5",
+    "RIG101_d6"
+  ],
+  "answer_key": {
+    "RIG101_d1": 1,
+    "RIG101_d2": 2,
+    "RIG101_d3": 1,
+    "RIG101_d4": 3,
+    "RIG101_d5": 0,
+    "RIG101_d6": 2,
+    "RIG101_q1": 2,
+    "RIG101_q2": 0,
+    "RIG101_q3": 3,
+    "RIG101_q4": 1,
+    "RIG101_q5": 2,
+    "RIG101_q6": 3,
+    "RIG101_q7": 0,
+    "RIG101_q8": 1,
+    "RIG101_q9": 3,
+    "RIG101_q10": 2,
+    "RIG101_q11": 0,
+    "RIG101_q12": 3,
+    "RIG101_q13": 1
+  }
+}
