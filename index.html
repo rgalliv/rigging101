@@ -157,7 +157,7 @@
       <div class="hard-caveats"><span>Equal share assumes a symmetric center of gravity and equal effective leg lengths.</span><span>For three or more legs, use the sling manufacturer’s rating and a conservative load-share assumption unless engineered otherwise.</span><span>Choker and basket ratings depend on the identified hitch rating, choke angle, bearing, and D/d.</span></div>
       <div class="explorer-grid">
         <aside class="component-nav" aria-label="Course-wide component catalog">
-          <div class="catalog-note"><b>All 30 components - one catalog</b><span>The assembly selector changes the rigging photograph, not this list. Use this catalog to open component lessons and inspection criteria.</span></div>
+          <div class="catalog-note"><b>All 30 components - one catalog</b><span>Select a component to replace the assembly view with its realistic close-up, then review its lesson and inspection criteria. Select an assembly above to return to the complete rigging photograph.</span></div>
           <div class="utility-row"><button class="utility" id="inspectionShortcut" type="button">Inspection criteria</button><button class="utility" id="unviewedOnly" type="button" aria-pressed="false">Unviewed only</button><button class="utility" id="clearProgress" type="button">Clear progress</button></div>
           <label class="search"><input id="search" type="search" aria-label="Find a component" placeholder="Find a component..." autocomplete="off"><span aria-hidden="true">⌕</span></label>
           <div id="componentList"></div>
@@ -366,7 +366,7 @@
       {id:"spreader",image:"assets/configurations/09-spreader-beam.webp",tile:"Spreader beam",volume:"B30.20 / BTH-1",legs:2,kind:"beam",defaultHitch:"vertical",components:["hook","latch","topshackle","slingbody","slingeye","tag","spreader","liftinglug","loadshackle","attachment","bearing","cg","tagline","blocking"]},
       {id:"liftingbeam",image:"assets/configurations/10-lifting-beam.webp",tile:"Lifting beam",volume:"B30.20 / BTH-1",legs:2,kind:"beam",defaultHitch:"vertical",components:["hook","latch","topshackle","slingbody","slingeye","tag","liftingbeam","plateclamp","liftinglug","attachment","cg","tagline","blocking"]}
     ];
-    const C=(id,system,name,volume,summary,fn,failure,inspection,authority,decision,lens)=>({id,system,name,volume,summary,fn,failure,inspection,authority,decision,lens});
+    const C=(id,system,name,volume,summary,fn,failure,inspection,authority,decision,lens)=>({id,system,name,volume,summary,fn,failure,inspection,authority,decision,lens,image:`assets/components/${id}.webp`});
     const RIG_COMPONENTS=[
       C("hook","hook","Load hook","ASME B30.10","The load hook connects the hoist to the rigging and must carry load in the bowl.","Seat the master link or approved connector in the bowl -- the curved base made to carry load. Centered loading avoids twisting and point loading.","Side, back, or tip loading creates bending the hook was not intended to carry. A spreading throat, twist, crack, or excessive wear can release the connection.","Remove from service for any visibly apparent bend or twist from the plane of the unbent hook; a throat-opening increase of 5% from the original dimension, not to exceed 1/4 in. (6 mm), unless the manufacturer specifies a smaller limit; any crack; wear exceeding 10% in the bowl or 5% on the back; corrosion; heat damage; damaged or worn load pins; or another condition creating doubt.","A designated person performs the inspection. A qualified person decides whether a deficiency is a hazard and approves return to service. Repairs follow the manufacturer or qualified-person process.","4 · Select and verify hardware","Confirm the hook marking, latch operation, bowl seating, capacity, and absence of side or point loading."),
       C("latch","hook","Hook latch","ASME B30.10","A latch helps retain a loose sling or device in the hook throat; it is not a load-supporting substitute for correct seating.","Close the throat after the rigging is seated. Verify the latch moves freely and returns to the closed position.","A bent, missing, or jammed latch can let a slack connector escape. Loading the latch can deform it and mislead the crew about the true load-bearing surface.","Inspect for proper operation, deformation, cracks, wear, heat or chemical damage, missing parts, and interference. Remove the hook from service when a latch deficiency creates a hazard until approved for return.","A designated person inspects. A qualified person evaluates the hazard. Only authorized repair consistent with B30.10 and manufacturer direction may return the hook to service.","4 · Select and verify hardware","A closed latch does not make tip loading acceptable. The connector still belongs in the bowl."),
@@ -480,7 +480,7 @@
       $$("#configTiles .tile").forEach(b=>b.onclick=()=>setConfig(b.dataset.config));
     }
     function setConfig(id){
-      config=RIG_CONFIGS.find(c=>c.id===id)||config;hitch=config.defaultHitch;write("config",config.id);
+      config=RIG_CONFIGS.find(c=>c.id===id)||config;hitch=config.defaultHitch;active=null;write("config",config.id);
       renderAll();$("#explorer").scrollIntoView({behavior:"smooth",block:"start"});
     }
     function renderControls(){
@@ -523,10 +523,11 @@
       return{yTop,yPick,left,right,loadX:Math.max(55,left-65),loadW:Math.min(890,right-left+130)};
     }
     function renderScene(){
+      const component=compById(active),sceneImage=component?.image||config.image,sceneTitle=component?.name||config.tile;
       $("#rigStage").setAttribute("viewBox","0 0 1000 650");
-      $("#scene").innerHTML=`<image href="${esc(config.image)}" x="0" y="0" width="1000" height="650" preserveAspectRatio="xMidYMid meet"/>`;
+      $("#scene").innerHTML=`<image href="${esc(sceneImage)}" x="0" y="0" width="1000" height="650" preserveAspectRatio="xMidYMid meet"/>`;
       $("#layerScene").innerHTML="";
-      $("#hotspotScene").innerHTML="";$("#stageBadgeTitle").textContent=config.tile;$("#stageTitle").textContent=`${config.tile} realistic rigging assembly photograph`;$("#stageDesc").textContent=`Real equipment photograph of ${config.tile.toLowerCase()}. Use the component catalog and selected technical lenses to review the assembly.`;
+      $("#hotspotScene").innerHTML="";$("#stageBadgeTitle").textContent=sceneTitle;$("#stageBadgeText").textContent=component?`Component close-up · ${component.summary}`:`Clean configuration view. Use the course-wide component catalog for individual lessons.`;$("#stageTitle").textContent=component?`${component.name} realistic component photograph`:`${config.tile} realistic rigging assembly photograph`;$("#stageDesc").textContent=component?`Real equipment close-up of ${component.name.toLowerCase()}. ${component.summary}`:`Real equipment photograph of ${config.tile.toLowerCase()}. Use the component catalog and selected technical lenses to review the assembly.`;
     }
     function renderHotspots(g,loadX,loadW,loadY){
       $("#hotspotScene").innerHTML="";
@@ -538,7 +539,7 @@
       $$("#componentList .part").forEach(b=>b.onclick=()=>selectComponent(b.dataset.component));
     }
     function selectComponent(id){
-      const c=compById(id);if(!c)return;active=id;activeTab="fn";viewed.add(id);write("components",[...viewed]);renderAll();$("#contextPanel").focus({preventScroll:true});
+      const c=compById(id);if(!c)return;active=id;activeTab="fn";viewed.add(id);write("components",[...viewed]);renderAll();if(matchMedia("(max-width:1040px)").matches)requestAnimationFrame(()=>$("#stageShell").scrollIntoView({behavior:"smooth",block:"start"}));else $("#contextPanel").focus({preventScroll:true});
     }
     function renderDetail(){
       const c=compById(active);
