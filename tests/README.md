@@ -93,3 +93,14 @@ Exit code `0` only when all checks pass. On its first run this suite caught a
 missing translation on the rigging-library strip ("Change the assembly") and a
 stale tool-mode-bar title that kept its previous language after a toggle —
 both fixed.
+
+## Competency UX suite (`competency-ux-test.js`)
+
+Guards the v2 learner model at a 390×844 phone viewport: the three-area learner
+navigation, sticky-header clearance, photograph-first progressive disclosure,
+confidence persistence, high-confidence error remediation, the readiness map,
+and the boundary between application knowledge and observed field performance.
+
+```bash
+node tests/competency-ux-test.js
+```
