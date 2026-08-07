@@ -86,6 +86,7 @@
     @media(max-width:520px){.scenario-caption{width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}}
     @media(min-width:981px){.resource-grid{grid-template-columns:repeat(6,1fr)}.resource-card{grid-column:span 2}}
     .glossary-dialog{width:min(680px,calc(100% - 28px));max-height:min(760px,calc(100dvh - 28px));margin:auto;padding:0;border:0;border-radius:20px;background:#fff;color:var(--ink);box-shadow:0 34px 100px rgba(0,0,0,.45)}.glossary-dialog::backdrop{background:rgba(5,12,24,.7);backdrop-filter:blur(5px)}.glossary-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:17px 20px;background:var(--navy);color:#fff}.glossary-head h2{margin:0;font-size:24px;line-height:1;text-transform:uppercase}.glossary-list{margin:0;padding:18px 20px;display:grid;gap:13px;overflow:auto;max-height:calc(min(760px,100dvh - 28px) - 70px)}.glossary-list dt{font-weight:900;font-size:13px;color:var(--navy)}.glossary-list dd{margin:3px 0 0;color:var(--slate);font-size:12px;line-height:1.55}
+    @media(max-width:520px){.glossary-head{padding:13px 15px}.glossary-head h2{font-size:19px}.glossary-list{padding:14px 15px}.glossary-list dd{font-size:13px}.laf-wrap th,.laf-wrap td{padding:5px 6px;font-size:10px}}
     @media(max-width:980px){.journey-card{grid-template-columns:1fr}.journey-visual{min-height:0;max-height:none;aspect-ratio:16/9}.resource-grid{grid-template-columns:repeat(2,1fr)}.resource-head{grid-template-columns:1fr;gap:13px}.journey-stepper{display:flex;overflow-x:auto}.journey-step{flex:0 0 145px}}
     @media(max-width:520px){.hero-actions{display:grid}.hero-actions .btn{width:100%}.nav .btn-instructor,.journey-actions .btn{min-height:44px}.learner-journey{width:calc(100% - 10px);margin-top:6px}.journey-shell{border-radius:18px}.journey-head{grid-template-columns:1fr;padding:21px 18px}.journey-progress{text-align:left}.journey-progress b{font-size:25px}.journey-stepper{padding:10px}.journey-card{min-height:0}.journey-visual{min-height:0;max-height:none;aspect-ratio:4/3}.journey-copy{padding:21px 16px}.journey-teaching,.journey-options{grid-template-columns:1fr}.journey-option{min-height:44px;font-size:12px}.journey-actions{display:grid;grid-template-columns:1fr 1fr}.journey-actions .btn:last-child{grid-column:1/-1}.resource-hub{width:calc(100% - 22px)}.resource-grid{grid-template-columns:1fr}.resource-card{min-height:145px}.resource-card span{font-size:12px}.tool-mode-bar{top:128px;padding:9px 11px}.tool-mode-bar b{font-size:9px}body:not([data-tool="explorer"]) .tool-mode-bar{top:64px}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
@@ -112,7 +113,7 @@
 
   <header class="hero">
     <div class="hero-shade"></div>
-    <img class="hero-rig" src="assets/scenarios/hero-rigging-realistic.webp" alt="" width="1672" height="941" decoding="async">
+    <img class="hero-rig" src="assets/scenarios/hero-rigging-realistic.webp" alt="" width="1672" height="941" decoding="async" fetchpriority="high">
     <div class="hero-inner">
       <div class="eyebrow">Rigging 101 · Field Learning Lab</div>
       <h1>See the <span>load path.</span><br>Make the call.</h1>
@@ -212,7 +213,7 @@
         </header>
         <div class="scenario-grid">
           <figure class="scenario-visual" aria-labelledby="scenarioCaption">
-            <img src="assets/scenarios/pump-skid-prelift.webp" width="1600" height="900" alt="A pump skid resting on stable timber blocking in a fabrication shop. A two-leg wire-rope bridle, shackles, and two edge-protection pads are staged nearby, and a rolling tool cart stands in the intended travel area.">
+            <img src="assets/scenarios/pump-skid-prelift.webp" width="1600" height="900" loading="lazy" decoding="async" alt="A pump skid resting on stable timber blocking in a fabrication shop. A two-leg wire-rope bridle, shackles, and two edge-protection pads are staged nearby, and a rolling tool cart stands in the intended travel area.">
             <span id="scenarioHotspots"></span>
             <span class="scenario-chip"><i aria-hidden="true"></i>Staged · no load suspended</span>
             <figcaption class="scenario-caption" id="scenarioCaption">Training scene built around standard pre-lift checks: load planning, inspection, sling angle, hardware, protection, and landing. The photograph supplies clues; controlled documents establish the facts.</figcaption>
@@ -517,7 +518,7 @@
     };
 
     function renderTiles(){
-      $("#configTiles").innerHTML=RIG_CONFIGS.map((c,i)=>`<button class="tile" type="button" role="tab" aria-selected="${c.id===config.id}" aria-label="${esc(c.tile)} — ${esc(c.volume)}" data-config="${c.id}"><img src="${esc(c.image)}" alt="" width="480" height="320" decoding="async"><span class="tile-copy"><b>${String(i+1).padStart(2,"0")} · ${esc(c.volume)}</b><span class="tile-name">${esc(c.tile)}</span></span></button>`).join("");
+      $("#configTiles").innerHTML=RIG_CONFIGS.map((c,i)=>`<button class="tile" type="button" role="tab" aria-selected="${c.id===config.id}" aria-label="${esc(c.tile)} — ${esc(c.volume)}" data-config="${c.id}"><img src="${esc(c.image)}" alt="" width="480" height="320" loading="lazy" decoding="async"><span class="tile-copy"><b>${String(i+1).padStart(2,"0")} · ${esc(c.volume)}</b><span class="tile-name">${esc(c.tile)}</span></span></button>`).join("");
       $$("#configTiles .tile").forEach(b=>b.onclick=()=>setConfig(b.dataset.config));
     }
     function setConfig(id){
@@ -537,7 +538,7 @@
       $("#layerControls").innerHTML=L.map(x=>`<button type="button" aria-pressed="${layers.has(x[0])}" class="${layers.has(x[0])?"active":""}" data-layer="${x[0]}">${x[1]}</button>`).join("");
       const LAF_ROWS=[[90,1],[60,1.155],[45,1.414],[30,2]];
       $("#lafTable").hidden=!angleApplies;
-      $("#lafTable").innerHTML=angleApplies?`<table><caption>Load-angle factor reference · LAF = 1 ÷ sin(horizontal angle)</caption><thead><tr><th scope="col">Horizontal angle</th><th scope="col">Load-angle factor</th><th scope="col">Tension per effective leg · ${wt(weight)} load, 2 legs</th></tr></thead><tbody>${LAF_ROWS.map(([a,f])=>`<tr class="${a===angle?"current":""}"><td>${a}°${a===90?" (vertical)":""}</td><td>${f.toFixed(3)}</td><td>${wt(weight/2*f)}</td></tr>`).join("")}</tbody></table><p><b>Kito Crosby best practice:</b> keep horizontal sling angles at 60° or above and never rig below 30°. Lower angles raise both leg tension and the crushing force on the load.</p>`:"";
+      $("#lafTable").innerHTML=angleApplies?`<table><caption>Load-angle factor reference · LAF = 1 ÷ sin(horizontal angle)</caption><thead><tr><th scope="col">Horizontal angle</th><th scope="col">Load-angle factor</th><th scope="col">Per-leg tension · ${wt(weight)} · 2 legs</th></tr></thead><tbody>${LAF_ROWS.map(([a,f])=>`<tr class="${a===angle?"current":""}"><td>${a}°${a===90?" (vertical)":""}</td><td>${f.toFixed(3)}</td><td>${wt(weight/2*f)}</td></tr>`).join("")}</tbody></table><p><b>Kito Crosby best practice:</b> keep horizontal sling angles at 60° or above and never rig below 30°. Lower angles raise both leg tension and the crushing force on the load.</p>`:"";
       $$("#focusControls button").forEach(b=>b.onclick=()=>{focus=b.dataset.focus;renderAll()});
       $$("#angleControls button").forEach(b=>b.onclick=()=>{angle=Number(b.dataset.angle);renderAll()});
       $$("#layerControls button").forEach(b=>b.onclick=()=>{layers.has(b.dataset.layer)?layers.delete(b.dataset.layer):layers.add(b.dataset.layer);renderAll()});
@@ -561,15 +562,17 @@
     function renderLayers(){
       const g=$("#layerScene");
       if(!layers.size){g.innerHTML="";return}
-      const d=tensionData(),rows=[];
-      if(layers.has("labels"))rows.push(["Labels",`${config.tile} · ${config.volume} · ${config.components.length} cataloged components`]);
-      if(layers.has("loadpath"))rows.push(["Load path",`Hook → ${config.legs===1?"1 leg":`${config.legs} legs`} → load: one continuous path — the weakest link governs`]);
-      if(layers.has("tension"))rows.push(["Tension",d.tension===null?d.demand:`≈ ${wt(d.tension)} ${d.mode==="basket"?"per support":"per leg"} in this simplified model`]);
-      if(layers.has("geometry"))rows.push(["Geometry",d.angleApplicable?`${angle}° from horizontal · LAF ${d.laf.toFixed(3)} = 1 ÷ sin ${angle}°`:d.mode==="choker"?"Choke angle governs — keep it at 120° or more":d.mode==="device"?"Use the marked device geometry and approved pick points":"Vertical leg · LAF 1.000"]);
-      if(layers.has("contact"))rows.push(["Contact","Verify D/d and edge protection at every sling contact"]);
-      if(layers.has("cg"))rows.push(["Center of gravity","Keep the hook over the verified CG — the load rotates until it is"]);
-      if(layers.has("inspection"))rows.push(["Inspection","Inspect before each shift · remove damaged rigging immediately"]);
-      const bandH=Math.max(96,36+rows.length*24),bandY=650-bandH-10;
+      const compact=($("#stageShell").clientWidth||800)<640;
+      const d=tensionData(),rows=[],legsText=config.legs===1?"1 leg":`${config.legs} legs`;
+      if(layers.has("labels"))rows.push(["Labels",compact?config.tile:`${config.tile} · ${config.volume} · ${config.components.length} cataloged components`]);
+      if(layers.has("loadpath"))rows.push(["Load path",compact?`Hook → ${legsText} → load`:`Hook → ${legsText} → load: one continuous path — the weakest link governs`]);
+      if(layers.has("tension"))rows.push(["Tension",d.tension===null?d.demand:compact?`≈ ${wt(d.tension)} ${d.mode==="basket"?"per support":"per leg"}`:`≈ ${wt(d.tension)} ${d.mode==="basket"?"per support":"per leg"} in this simplified model`]);
+      if(layers.has("geometry"))rows.push(["Geometry",d.angleApplicable?(compact?`${angle}° · LAF ${d.laf.toFixed(3)}`:`${angle}° from horizontal · LAF ${d.laf.toFixed(3)} = 1 ÷ sin ${angle}°`):d.mode==="choker"?(compact?"Choke angle 120° or more":"Choke angle governs — keep it at 120° or more"):d.mode==="device"?(compact?"Use the marked device geometry":"Use the marked device geometry and approved pick points"):"Vertical leg · LAF 1.000"]);
+      if(layers.has("contact"))rows.push(["Contact",compact?"Check D/d + edge protection":"Verify D/d and edge protection at every sling contact"]);
+      if(layers.has("cg"))rows.push(["Center of gravity",compact?"Keep the hook over the CG":"Keep the hook over the verified CG — the load rotates until it is"]);
+      if(layers.has("inspection"))rows.push(["Inspection",compact?"Inspect each shift — remove damage":"Inspect before each shift · remove damaged rigging immediately"]);
+      const headFont=compact?18:10,rowFont=compact?26:13,labelFont=compact?17:10,rowGap=compact?38:24,firstRow=compact?58:46,headY=compact?30:22;
+      const bandH=Math.max(compact?80:96,(compact?26:22)+rows.length*rowGap+(compact?14:22)),bandY=650-bandH-10;
       const cx=862,topY=bandY+18,botY=bandY+bandH-26,h=botY-topY;
       const stroke='stroke="#e3c873" stroke-width="4" fill="none" stroke-linecap="round"';
       let sketch="";
@@ -583,9 +586,9 @@
         sketch=`<line x1="${cx}" y1="${topY}" x2="${cx-dx}" y2="${botY}" ${stroke}/><line x1="${cx}" y1="${topY}" x2="${cx+dx}" y2="${botY}" ${stroke}/><rect x="${cx-dx-22}" y="${botY}" width="${dx*2+44}" height="9" rx="3" fill="#37a99c"/>${layers.has("cg")?`<circle cx="${cx}" cy="${botY+4}" r="6" fill="#fff" stroke="#d65b52" stroke-width="3"/>`:""}${d.angleApplicable?`<text x="${cx+dx+8}" y="${botY-6}" fill="#fff" stroke="#07101e" stroke-width="4" paint-order="stroke" font-size="15" font-weight="900" font-family="Arial,sans-serif">${angle}°</text>`:""}`;
       }
       g.innerHTML=`<rect x="10" y="${bandY}" width="980" height="${bandH}" rx="13" fill="rgba(7,16,30,.87)"/>
-        <text x="26" y="${bandY+22}" fill="#e3c873" font-size="10" font-weight="900" letter-spacing="1.1" font-family="Arial,sans-serif">TECHNICAL LENS · TRAINING MODEL — NOT ALIGNED TO THE PHOTOGRAPH</text>
-        ${rows.map((r,i)=>`<text x="26" y="${bandY+46+i*24}" font-size="13" font-family="Arial,sans-serif"><tspan fill="#8fc7ff" font-size="10" font-weight="900">${esc(r[0].toUpperCase())} · </tspan><tspan fill="#f2f6fb" font-weight="700">${esc(r[1])}</tspan></text>`).join("")}
-        <circle cx="${cx}" cy="${topY}" r="7" fill="#fff" stroke="#0d1830" stroke-width="3"/>${sketch}`;
+        <text x="26" y="${bandY+headY}" fill="#e3c873" font-size="${headFont}" font-weight="900" letter-spacing="1.1" font-family="Arial,sans-serif">${compact?"TECHNICAL LENS · TRAINING MODEL":"TECHNICAL LENS · TRAINING MODEL — NOT ALIGNED TO THE PHOTOGRAPH"}</text>
+        ${rows.map((r,i)=>`<text x="26" y="${bandY+firstRow+i*rowGap}" font-size="${rowFont}" font-family="Arial,sans-serif"><tspan fill="#8fc7ff" font-size="${labelFont}" font-weight="900">${esc(r[0].toUpperCase())} · </tspan><tspan fill="#f2f6fb" font-weight="700">${esc(r[1])}</tspan></text>`).join("")}
+        ${compact?"":`<circle cx="${cx}" cy="${topY}" r="7" fill="#fff" stroke="#0d1830" stroke-width="3"/>${sketch}`}`;
     }
     function renderScene(){
       const component=compById(active),sceneImage=component?.image||config.image,sceneTitle=component?.name||config.tile;
@@ -817,6 +820,7 @@
     stage.addEventListener("pointerdown",e=>{if(zoom<=1||e.target.closest(".stage-tools"))return;drag={x:e.clientX-pan.x,y:e.clientY-pan.y};stage.setPointerCapture(e.pointerId);svg.classList.add("dragging")});
     stage.addEventListener("pointermove",e=>{if(!drag)return;pan={x:e.clientX-drag.x,y:e.clientY-drag.y};applyTransform()});
     stage.addEventListener("pointerup",()=>{drag=null;svg.classList.remove("dragging")});stage.addEventListener("pointercancel",()=>{drag=null;svg.classList.remove("dragging")});
+    let layerResizeTimer;window.addEventListener("resize",()=>{clearTimeout(layerResizeTimer);layerResizeTimer=setTimeout(renderLayers,150)});
     const firstUnmastered=DECISIONS.findIndex(d=>!mastered.has(d.id));journeyIndex=firstUnmastered<0?0:firstUnmastered;
     const hashTool={"#explorer":"explorer","#scenarioLab":"scenario","#shareLab":"share","#mastery":"mastery"}[location.hash];if(hashTool){document.body.dataset.tool=hashTool;document.body.classList.add("tool-open");$("#toolModeTitle").textContent=TOOL_TITLES[hashTool]}
     if("serviceWorker" in navigator&&(location.protocol==="https:"||["localhost","127.0.0.1"].includes(location.hostname)))navigator.serviceWorker.register("sw.js").catch(()=>{});
