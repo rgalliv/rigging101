@@ -68,7 +68,7 @@ buttons (effect rendered ~1,300px off-screen on phones) and the zoom controls
 
 ## Spanish-mode suite (`spanish-mode-test.js`)
 
-Guards the bilingual (English / Latin American Spanish) experience — 25 checks:
+Guards the bilingual (English / Latin American Spanish) experience — 30 checks:
 
 - Language toggle, `<html lang>`, document title, and persistence across reload
 - Interactive flows while the UI is in Spanish: course decision, scenario
@@ -80,6 +80,9 @@ Guards the bilingual (English / Latin American Spanish) experience — 25 checks
   English marker phrases *and* common English function words; back in English,
   the same views are swept for Spanish markers. Any UI string added in only
   one language fails the sweep with a context snippet showing where it leaked.
+- **Round-trip integrity**: EN→ES→EN and ES→EN→ES restore each view byte-for-byte,
+  and stateful feedback (an answered quiz question, a missed course answer)
+  re-renders in the newly selected language instead of keeping the old one.
 - The instructor dialog is intentionally English-only and is excluded.
 
 ```bash

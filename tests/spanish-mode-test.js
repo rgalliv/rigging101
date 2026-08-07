@@ -228,6 +228,65 @@ async function check(name, fn) {
   await check('EN leak scan · mastery/quiz', () => scan('mastery/en', ES_MARKERS));
   await closeTool();
 
+  // ---------- 6. Round-trip integrity (EN→ES→EN and ES→EN→ES) ----------
+  const snap = () => page.evaluate(() => { const t = document.querySelector('#toast'); if (t) t.textContent = ''; return document.body.innerText; });
+  const flip = async () => { await page.click('#langToggle'); await page.waitForTimeout(450); };
+  await check('round trip EN→ES→EN restores the course view byte-for-byte', async () => {
+    const en1 = await snap();
+    await flip();
+    const es1 = await snap();
+    await flip();
+    const en2 = await snap();
+    if (en1 !== en2) throw new Error('EN text changed after ES round trip');
+    return es1 !== en1;
+  });
+  await check('round trip ES→EN→ES restores Spanish byte-for-byte', async () => {
+    await flip();
+    const es1 = await snap();
+    await flip(); await flip();
+    const es2 = await snap();
+    await flip(); // leave in English
+    if (es1 !== es2) throw new Error('ES text changed after EN round trip');
+    return true;
+  });
+  await check('explorer round trip EN→ES→EN byte-for-byte', async () => {
+    await openTool('explorer');
+    const en1 = await snap();
+    await flip(); await flip();
+    const en2 = await snap();
+    await closeTool();
+    if (en1 !== en2) throw new Error('explorer EN text changed after round trip');
+    return true;
+  });
+  await check('answered-quiz feedback follows the language both ways', async () => {
+    await openTool('mastery');
+    await page.click(`.quiz-option[data-qchoice="${ANSWERS.RIG101_q1}"]`);
+    await page.click('#checkAnswer');
+    await page.waitForTimeout(250);
+    const en = await txt('#quizFeedback');
+    await flip();
+    const es = await txt('#quizFeedback');
+    await flip();
+    const enBack = await txt('#quizFeedback');
+    await closeTool();
+    return en.startsWith('Correct.') && es.startsWith('Correcto.') && enBack.startsWith('Correct.');
+  });
+  await check('missed-course-answer feedback follows the language both ways', async () => {
+    const step = await page.evaluate(() => Number(document.querySelector('#journeyStepper .current').dataset.journeyIndex));
+    const id = 'RIG101_d' + (step + 1);
+    const wrong = (ANSWERS[id] + 1) % 4;
+    await page.click(`#journeyOptions button[data-journey-choice="${wrong}"]`);
+    await page.click('#journeyCheck');
+    await page.waitForTimeout(250);
+    const en = await txt('#journeyFeedback');
+    await flip();
+    const es = await txt('#journeyFeedback');
+    await flip();
+    const enBack = await txt('#journeyFeedback');
+    await page.click('#journeyCheck'); // "Try again" resets the miss state
+    return en.includes('does not control') && es.includes('no controla') && enBack.includes('does not control');
+  });
+
   await check('no JS errors accumulated across full run', async () =>
     consoleErrors.length === 0 || (() => { throw new Error(consoleErrors.slice(0, 5).join(' | ')) })());
 
