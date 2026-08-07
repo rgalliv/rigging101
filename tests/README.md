@@ -2,7 +2,7 @@
 
 `button-test.js` drives a real Chromium browser (Playwright) through **every
 button on every tab/page** of `index.html` and asserts the expected state
-change for each one — 134 checks covering:
+change for each one — 137 checks covering:
 
 - Nav & hero (Start course, Instructor mode, Open reference tools, Back-to-course bar)
 - Rigging library — all 10 configuration tiles (visible only in explorer mode, by design)

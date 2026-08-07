@@ -164,7 +164,7 @@
           <span class="control-label hitch-label">Hitch shown</span><div class="segmented" id="hitchControls"></div>
         </div>
         <div class="control-row">
-          <span class="control-label">Technical layers</span><div class="segmented layer layers" id="layerControls"></div>
+          <span class="control-label" id="layerLabel">Technical layers</span><div class="segmented layer layers" id="layerControls"></div>
           <button class="utility" id="guidedTour" type="button">Open the 6-step course</button><button class="utility" id="printGuide" type="button">Print reference</button><button class="utility" id="unitToggle" type="button" aria-pressed="false">Show kg</button>
         </div>
         <div class="laf-wrap" id="lafTable" hidden></div>
@@ -536,12 +536,13 @@
       $("#hitchControls").innerHTML=showHitch?`<span class="hitch-chip">${hitchName} hitch — set by the assembly above</span>`:"";
       const L=[["labels","Labels"],["loadpath","Load path"],["tension","Tension"],["geometry","Geometry"],["contact","Contact"],["cg","Center of gravity"],["inspection","Inspection"]];
       $("#layerControls").innerHTML=L.map(x=>`<button type="button" aria-pressed="${layers.has(x[0])}" class="${layers.has(x[0])?"active":""}" data-layer="${x[0]}">${x[1]}</button>`).join("");
+      $("#layerLabel").textContent=layers.size?`Technical layers · ${layers.size} on`:"Technical layers · all off";
       const LAF_ROWS=[[90,1],[60,1.155],[45,1.414],[30,2]];
       $("#lafTable").hidden=!angleApplies;
       $("#lafTable").innerHTML=angleApplies?`<table><caption>Load-angle factor reference · LAF = 1 ÷ sin(horizontal angle)</caption><thead><tr><th scope="col">Horizontal angle</th><th scope="col">Load-angle factor</th><th scope="col">Per-leg tension · ${wt(weight)} · 2 legs</th></tr></thead><tbody>${LAF_ROWS.map(([a,f])=>`<tr class="${a===angle?"current":""}"><td>${a}°${a===90?" (vertical)":""}</td><td>${f.toFixed(3)}</td><td>${wt(weight/2*f)}</td></tr>`).join("")}</tbody></table><p><b>Kito Crosby best practice:</b> keep horizontal sling angles at 60° or above and never rig below 30°. Lower angles raise both leg tension and the crushing force on the load.</p>`:"";
       $$("#focusControls button").forEach(b=>b.onclick=()=>{focus=b.dataset.focus;renderAll()});
       $$("#angleControls button").forEach(b=>b.onclick=()=>{angle=Number(b.dataset.angle);renderAll()});
-      $$("#layerControls button").forEach(b=>b.onclick=()=>{layers.has(b.dataset.layer)?layers.delete(b.dataset.layer):layers.add(b.dataset.layer);renderAll()});
+      $$("#layerControls button").forEach(b=>b.onclick=()=>{const name=b.textContent,on=!layers.has(b.dataset.layer);on?layers.add(b.dataset.layer):layers.delete(b.dataset.layer);renderAll();showToast(on?`${name} lens on — shown on the photograph below`:`${name} lens off`);const r=$("#stageShell").getBoundingClientRect();if(on&&(r.top>innerHeight-220||r.bottom<120))$("#stageShell").scrollIntoView({behavior:"smooth",block:"center"})});
     }
     function tensionData(){
       if(hitch==="choker") return{mode:"choker",laf:null,effectiveLegs:1,tension:null,angleApplicable:false,basis:"1 sling · choker",demand:"Use tagged choker WLL",note:"A choker is not a two-leg bridle. Do not apply the horizontal sling-angle factor here. Select from the sling’s identified choker rating. The published choker rating applies only under its stated conditions; for a choke angle below 120°, use the sling manufacturer’s data or a qualified person.",source:"Kito Crosby wire rope sling guidance (minimum 120° choke angle); OSHA 1910.184; ASME B30.9."};
@@ -583,12 +584,12 @@
         sketch=`<line x1="${cx}" y1="${topY}" x2="${cx}" y2="${botY}" ${stroke}/>${d.mode==="choker"?`<circle cx="${cx}" cy="${botY-8}" r="11" ${stroke}/>`:""}<rect x="${cx-66}" y="${botY}" width="132" height="9" rx="3" fill="#37a99c"/>`;
       }else{
         const dx=Math.min(112,h/Math.tan(angle*Math.PI/180));
-        sketch=`<line x1="${cx}" y1="${topY}" x2="${cx-dx}" y2="${botY}" ${stroke}/><line x1="${cx}" y1="${topY}" x2="${cx+dx}" y2="${botY}" ${stroke}/><rect x="${cx-dx-22}" y="${botY}" width="${dx*2+44}" height="9" rx="3" fill="#37a99c"/>${layers.has("cg")?`<circle cx="${cx}" cy="${botY+4}" r="6" fill="#fff" stroke="#d65b52" stroke-width="3"/>`:""}${d.angleApplicable?`<text x="${cx+dx+8}" y="${botY-6}" fill="#fff" stroke="#07101e" stroke-width="4" paint-order="stroke" font-size="15" font-weight="900" font-family="Arial,sans-serif">${angle}°</text>`:""}`;
+        sketch=`<line x1="${cx}" y1="${topY}" x2="${cx-dx}" y2="${botY}" ${stroke}/><line x1="${cx}" y1="${topY}" x2="${cx+dx}" y2="${botY}" ${stroke}/><rect x="${cx-dx-22}" y="${botY}" width="${dx*2+44}" height="9" rx="3" fill="#37a99c"/>${layers.has("cg")?`<circle cx="${cx}" cy="${botY+4}" r="6" fill="#fff" stroke="#d65b52" stroke-width="3"/>`:""}${d.angleApplicable?`<text x="${Math.min(cx+dx+8,946)}" y="${botY-6}" fill="#fff" stroke="#07101e" stroke-width="4" paint-order="stroke" font-size="${compact?22:15}" font-weight="900" font-family="Arial,sans-serif">${angle}°</text>`:""}`;
       }
       g.innerHTML=`<rect x="10" y="${bandY}" width="980" height="${bandH}" rx="13" fill="rgba(7,16,30,.87)"/>
         <text x="26" y="${bandY+headY}" fill="#e3c873" font-size="${headFont}" font-weight="900" letter-spacing="1.1" font-family="Arial,sans-serif">${compact?"TECHNICAL LENS · TRAINING MODEL":"TECHNICAL LENS · TRAINING MODEL — NOT ALIGNED TO THE PHOTOGRAPH"}</text>
         ${rows.map((r,i)=>`<text x="26" y="${bandY+firstRow+i*rowGap}" font-size="${rowFont}" font-family="Arial,sans-serif"><tspan fill="#8fc7ff" font-size="${labelFont}" font-weight="900">${esc(r[0].toUpperCase())} · </tspan><tspan fill="#f2f6fb" font-weight="700">${esc(r[1])}</tspan></text>`).join("")}
-        ${compact?"":`<circle cx="${cx}" cy="${topY}" r="7" fill="#fff" stroke="#0d1830" stroke-width="3"/>${sketch}`}`;
+        <circle cx="${cx}" cy="${topY}" r="7" fill="#fff" stroke="#0d1830" stroke-width="3"/>${sketch}`;
     }
     function renderScene(){
       const component=compById(active),sceneImage=component?.image||config.image,sceneTitle=component?.name||config.tile;
