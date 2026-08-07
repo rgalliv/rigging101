@@ -65,3 +65,28 @@ Exit code `0` = every clicked button produced a visible response; `2` = at
 least one button was flagged. This is the scan that caught the technical-layer
 buttons (effect rendered ~1,300px off-screen on phones) and the zoom controls
 (clickable no-ops at 100% zoom, now disabled instead).
+
+## Spanish-mode suite (`spanish-mode-test.js`)
+
+Guards the bilingual (English / Latin American Spanish) experience — 25 checks:
+
+- Language toggle, `<html lang>`, document title, and persistence across reload
+- Interactive flows while the UI is in Spanish: course decision, scenario
+  unlock + decision, quiz answer, layer toggles (toast + count label),
+  kg toggle, progress-summary export — answer keys derived from the embedded
+  FNV hashes, same as `button-test.js`
+- **Leak scans**: with the UI in Spanish, every tool view (course, explorer,
+  component lesson, scenario, share lab, mastery, glossary) is swept for
+  English marker phrases *and* common English function words; back in English,
+  the same views are swept for Spanish markers. Any UI string added in only
+  one language fails the sweep with a context snippet showing where it leaked.
+- The instructor dialog is intentionally English-only and is excluded.
+
+```bash
+node tests/spanish-mode-test.js
+```
+
+Exit code `0` only when all checks pass. On its first run this suite caught a
+missing translation on the rigging-library strip ("Change the assembly") and a
+stale tool-mode-bar title that kept its previous language after a toggle —
+both fixed.
