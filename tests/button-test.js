@@ -155,17 +155,55 @@ async function check(name, fn) {
       return active && readout.includes(`${a}°`);
     });
   }
-  // layer toggles
-  const layerBtns = await page.$$eval('#layerControls button', els => els.map(e => e.dataset.layer));
+  // layer toggles: each must flip aria-pressed AND visibly add/remove its row in the stage overlay band
+  const layerBtns = await page.$$eval('#layerControls button', els => els.map(e => ({ key: e.dataset.layer, name: e.textContent })));
+  const bandLabel = { labels: 'LABELS', loadpath: 'LOAD PATH', tension: 'TENSION', geometry: 'GEOMETRY', contact: 'CONTACT', cg: 'CENTER OF GRAVITY', inspection: 'INSPECTION' };
   for (const l of layerBtns) {
-    await check(`technical layer toggle "${l}"`, async () => {
-      const before = await page.$eval(`#layerControls button[data-layer="${l}"]`, b => b.getAttribute('aria-pressed'));
-      await page.click(`#layerControls button[data-layer="${l}"]`);
-      await page.waitForTimeout(120);
-      const after = await page.$eval(`#layerControls button[data-layer="${l}"]`, b => b.getAttribute('aria-pressed'));
-      return before !== after;
+    await check(`technical layer toggle "${l.key}"`, async () => {
+      const before = await page.$eval(`#layerControls button[data-layer="${l.key}"]`, b => b.getAttribute('aria-pressed'));
+      await page.click(`#layerControls button[data-layer="${l.key}"]`);
+      await page.waitForTimeout(150);
+      const after = await page.$eval(`#layerControls button[data-layer="${l.key}"]`, b => b.getAttribute('aria-pressed'));
+      const inBand = (await txt('#layerScene')).includes(bandLabel[l.key]);
+      const toast = await page.$eval('#toast', el => el.textContent);
+      if (before === after) throw new Error('aria-pressed did not flip');
+      if (inBand !== (after === 'true')) throw new Error(`overlay band row mismatch: pressed=${after} inBand=${inBand}`);
+      if (!toast.includes('lens')) throw new Error('no toast feedback: ' + toast);
+      return true;
     });
   }
+  await check('layer label shows live on-count', async () => {
+    const label = await txt('#layerLabel');
+    const on = await page.$$eval('#layerControls button[aria-pressed="true"]', els => els.length);
+    return label.includes(on ? `${on} on` : 'all off');
+  });
+  await check('turning a layer on scrolls the stage into view when off-screen', async () => {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.$eval('#layerControls', el => el.scrollIntoView({ block: 'center' }));
+    await page.waitForTimeout(150);
+    const l = layerBtns.find(x => x.key === 'loadpath');
+    const wasOn = await page.$eval('#layerControls button[data-layer="loadpath"]', b => b.getAttribute('aria-pressed') === 'true');
+    if (wasOn) { await page.click('#layerControls button[data-layer="loadpath"]'); await page.waitForTimeout(150); }
+    await page.click('#layerControls button[data-layer="loadpath"]');
+    await page.waitForTimeout(900); // smooth scroll settle
+    const visible = await page.$eval('#stageShell', el => {
+      const r = el.getBoundingClientRect();
+      return r.top < innerHeight && r.bottom > 0;
+    });
+    return visible;
+  });
+  await check('overlay schematic renders on compact/mobile widths', async () => {
+    const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const mp = await mctx.newPage();
+    await mp.goto(BASE, { waitUntil: 'load' });
+    await mp.evaluate(() => localStorage.clear());
+    await mp.reload({ waitUntil: 'load' });
+    await mp.waitForTimeout(400);
+    await mp.click('.hero-actions [data-open-tool="explorer"]'); await mp.waitForTimeout(400);
+    const hasSketch = await mp.$eval('#layerScene', g => g.querySelectorAll('line, circle').length > 0);
+    await mctx.close();
+    return hasSketch;
+  });
   await check('weight input recalculates readout', async () => {
     await page.click('#configTiles .tile[data-config="bridle2"]'); await page.waitForTimeout(150);
     await page.click('#angleControls button[data-angle="60"]'); await page.waitForTimeout(150);
@@ -240,6 +278,14 @@ async function check(name, fn) {
     const z120 = (await txt('#zoomReset')) === '120%';
     await page.click('#zoomReset'); await page.waitForTimeout(100);
     return z140 && z120 && (await txt('#zoomReset')) === '100%';
+  });
+  await check('zoom −/reset disabled at 100%, + disabled at 200% (no dead clicks)', async () => {
+    const at100 = await page.$eval('#zoomOut', b => b.disabled) && await page.$eval('#zoomReset', b => b.disabled) && !(await page.$eval('#zoomIn', b => b.disabled));
+    for (let i = 0; i < 5; i++) await page.click('#zoomIn');
+    await page.waitForTimeout(100);
+    const at200 = await page.$eval('#zoomIn', b => b.disabled) && !(await page.$eval('#zoomOut', b => b.disabled));
+    await page.click('#zoomReset'); await page.waitForTimeout(100);
+    return at100 && at200;
   });
 
   // guided review (decision steps) inside explorer
