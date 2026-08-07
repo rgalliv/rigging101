@@ -45,3 +45,23 @@ Optional environment variables:
 
 Exit code is `0` only when every check passes. Each check prints `PASS`/`FAIL`
 with a reason on failure.
+
+## Visibility scan (`visibility-scan.js`)
+
+The button test proves handlers fire; this scan proves the response is
+**visible to the user**. For every button in every context (course, explorer,
+scenario lab, load-share lab, mastery, glossary dialog, and each instructor
+tab) it scrolls the button into view, screenshots the viewport, clicks, waits
+for toasts/scrolls to settle, screenshots again, and flags any button whose
+click changed nothing the user could see. Re-clicking an already-selected tab
+is reported as a designed no-op, not a failure.
+
+```bash
+node tests/visibility-scan.js              # mobile 390x844 (default)
+W=1400 H=950 node tests/visibility-scan.js # desktop
+```
+
+Exit code `0` = every clicked button produced a visible response; `2` = at
+least one button was flagged. This is the scan that caught the technical-layer
+buttons (effect rendered ~1,300px off-screen on phones) and the zoom controls
+(clickable no-ops at 100% zoom, now disabled instead).

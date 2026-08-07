@@ -279,6 +279,14 @@ async function check(name, fn) {
     await page.click('#zoomReset'); await page.waitForTimeout(100);
     return z140 && z120 && (await txt('#zoomReset')) === '100%';
   });
+  await check('zoom −/reset disabled at 100%, + disabled at 200% (no dead clicks)', async () => {
+    const at100 = await page.$eval('#zoomOut', b => b.disabled) && await page.$eval('#zoomReset', b => b.disabled) && !(await page.$eval('#zoomIn', b => b.disabled));
+    for (let i = 0; i < 5; i++) await page.click('#zoomIn');
+    await page.waitForTimeout(100);
+    const at200 = await page.$eval('#zoomIn', b => b.disabled) && !(await page.$eval('#zoomOut', b => b.disabled));
+    await page.click('#zoomReset'); await page.waitForTimeout(100);
+    return at100 && at200;
+  });
 
   // guided review (decision steps) inside explorer
   for (let i = 0; i < 6; i++) {
