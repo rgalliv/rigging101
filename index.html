@@ -817,7 +817,7 @@
     $("#instructorPrint").onclick=()=>{document.body.classList.add("print-instructor");printCleanup=setTimeout(clearInstructorPrint,30000);window.print()};
     const stage=$("#stageShell"),svg=$("#rigStage");
     function applyTransform(){svg.style.transform=`translate(${pan.x}px,${pan.y}px) scale(${zoom})`;$("#zoomReset").textContent=`${Math.round(zoom*100)}%`;svg.classList.toggle("drag-ready",zoom>1);$("#zoomOut").disabled=zoom<=1;$("#zoomReset").disabled=zoom<=1;$("#zoomIn").disabled=zoom>=2}
-    $("#zoomIn").onclick=()=>{zoom=Math.min(2,zoom+.2);applyTransform()};$("#zoomOut").onclick=()=>{zoom=Math.max(1,zoom-.2);if(zoom===1)pan={x:0,y:0};applyTransform()};$("#zoomReset").onclick=()=>{zoom=1;pan={x:0,y:0};applyTransform()};
+    $("#zoomIn").onclick=()=>{zoom=Math.min(2,Math.round((zoom+.2)*10)/10);applyTransform()};$("#zoomOut").onclick=()=>{zoom=Math.max(1,Math.round((zoom-.2)*10)/10);if(zoom===1)pan={x:0,y:0};applyTransform()};$("#zoomReset").onclick=()=>{zoom=1;pan={x:0,y:0};applyTransform()};
     stage.addEventListener("pointerdown",e=>{if(zoom<=1||e.target.closest(".stage-tools"))return;drag={x:e.clientX-pan.x,y:e.clientY-pan.y};stage.setPointerCapture(e.pointerId);svg.classList.add("dragging")});
     stage.addEventListener("pointermove",e=>{if(!drag)return;pan={x:e.clientX-drag.x,y:e.clientY-drag.y};applyTransform()});
     stage.addEventListener("pointerup",()=>{drag=null;svg.classList.remove("dragging")});stage.addEventListener("pointercancel",()=>{drag=null;svg.classList.remove("dragging")});
