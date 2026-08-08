@@ -34,7 +34,7 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
   await check('Tools returns to the focused tool hub', async () => {
     await page.click('#navTools'); await page.waitForTimeout(450);
     assert(await page.locator('#resources').isVisible(), 'tool hub is not visible');
-    assert(await page.locator('.resource-card').count() === 6, 'expected six focused tools');
+    assert(await page.locator('.resource-card').count() === 6, 'expected six focused learner tools');
   });
 
   await check('Learn returns to the photograph-first decision', async () => {
@@ -48,8 +48,7 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
     await page.click('#journeyConfidence [data-confidence="high"]');
     await page.click('#journeyCheck'); await page.waitForTimeout(150);
     assert(await page.locator('#journeyReveal').isVisible(), 'reasoning did not reveal after the decision');
-    const events = await page.evaluate(() => JSON.parse(localStorage.getItem('cq.rig101.confidenceEvents') || '[]'));
-    assert(events.length === 1 && events[0].confidence === 'high', 'high-confidence attempt was not recorded');
+    assert(await page.locator('#journeyConfidence [data-confidence="high"]').getAttribute('aria-pressed') === 'true', 'high confidence was not retained in session state');
   });
 
   await check('high-confidence errors become a readiness signal', async () => {

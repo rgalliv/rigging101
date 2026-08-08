@@ -54,6 +54,12 @@ async function check(name, fn) {
 
   // ---------- 0. Baseline ----------
   await check('page loads with no JS errors', async () => consoleErrors.length === 0 || (() => { throw new Error(consoleErrors.join(' | ')) })());
+  await check('public footer carries the controlling-employer determination', async () =>
+    (await txt('.employer-determination')) === 'All qualification determinations rest with the controlling employer per 29 CFR 1926 Subpart CC.');
+  await check('learner runtime does not use localStorage or sessionStorage', async () => {
+    const source = await page.evaluate(async () => (await fetch('index.html')).text() + (await fetch('visual-labs.js')).text());
+    return !/\blocalStorage\b|\bsessionStorage\b/.test(source);
+  });
 
   // ---------- 1. Nav / hero ----------
   await check('nav "Start course" (resumeNav) scrolls to 6-step course', async () => {
@@ -137,9 +143,9 @@ async function check(name, fn) {
 
   // ---------- 4. Explorer (reference tool) ----------
   await page.click('.hero-actions [data-open-tool="explorer"]'); await page.waitForTimeout(300);
-  await check('upper tool tabs expose four direct destinations', async () => {
+  await check('upper tool tabs expose five direct destinations', async () => {
     const tabs = await page.$$eval('#toolTabs [data-tool-tab]', buttons => buttons.map(button => ({ id: button.dataset.toolTab, selected: button.getAttribute('aria-selected') })));
-    return tabs.length === 4 && tabs.some(tab => tab.id === 'explorer' && tab.selected === 'true');
+    return tabs.length === 5 && tabs.some(tab => tab.id === 'visual') && tabs.some(tab => tab.id === 'explorer' && tab.selected === 'true');
   });
   await check('upper tool tabs switch tools without returning to the hub', async () => {
     await page.click('#toolTabs [data-tool-tab="share"]'); await page.waitForTimeout(250);
@@ -305,6 +311,14 @@ async function check(name, fn) {
   await page.click('#closeTool'); await page.waitForTimeout(200);
   await page.click('.resource-grid [data-open-tool="scenario"]'); await page.waitForTimeout(400);
   const evid = ['load', 'points', 'tag', 'hardware', 'protection', 'path'];
+  await check('evidence board exposes four scenes and protects pending photography slots', async () => {
+    const count = await page.$$eval('#scenarioLibraryNav [data-scenario-scene]', buttons => buttons.length);
+    await page.click('[data-scenario-scene="site"]');
+    const pending = await page.$eval('#scenarioLibraryPending', panel => panel.classList.contains('show'));
+    await page.click('[data-scenario-scene="shop"]');
+    const active = await page.$eval('#scenarioLab .scenario-grid', grid => !grid.hidden);
+    return count === 4 && pending && active;
+  });
   await check('scenario hotspot marker click reveals evidence', async () => {
     await page.click(`.evidence-hotspot[data-evidence="load"]`);
     await page.waitForTimeout(150);
@@ -439,7 +453,7 @@ async function check(name, fn) {
   });
 
   // ---------- 8. Resource cards ----------
-  for (const t of ['explorer', 'scenario', 'share', 'mastery']) {
+  for (const t of ['visual', 'explorer', 'scenario', 'share', 'mastery']) {
     await check(`resource card "${t}" opens tool mode`, async () => {
       await page.click(`.resource-grid [data-open-tool="${t}"]`); await page.waitForTimeout(250);
       const on = await page.evaluate(x => document.body.dataset.tool === x, t);
@@ -455,18 +469,50 @@ async function check(name, fn) {
     await page.click('#glossaryClose'); await page.waitForTimeout(150);
     return await page.$eval('#glossaryDialog', d => !d.open);
   });
-  await check('resource card "instructor" opens instructor dialog', async () => {
-    await page.click('.resource-grid [data-open-tool="instructor"]'); await page.waitForTimeout(250);
-    return await page.$eval('#instructorDialog', d => d.open);
+  await check('visual lab exposes seven focused topic tabs', async () => {
+    await page.click('.resource-grid [data-open-tool="visual"]'); await page.waitForTimeout(250);
+    return (await page.$$eval('#visualTabs [data-visual-tab]', tabs => tabs.length)) === 7;
   });
-  await check('instructor Close button', async () => {
-    await page.click('#instructorClose'); await page.waitForTimeout(150);
-    return await page.$eval('#instructorDialog', d => !d.open);
+  await check('visual lab angle instrument responds to the slider', async () => {
+    await page.click('[data-visual-tab="angle"]'); await page.waitForTimeout(150);
+    const before = await txt('#visual-angle .metric-stack .metric:nth-child(3) b');
+    await page.$eval('#angleRange', input => { input.value = '30'; input.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForTimeout(150);
+    const after = await txt('#visual-angle .metric-stack .metric:nth-child(3) b');
+    await page.click('#closeTool');
+    return before !== after && after.includes('10,000');
   });
+  await check('inspection, hitch, bend, path, tag, and CG visual controls respond', async () => {
+    await page.click('.resource-grid [data-open-tool="visual"]'); await page.waitForTimeout(150);
+    await page.$eval('#compareRange', input => { input.value = '70'; input.dispatchEvent(new Event('input', { bubbles: true })); });
+    const compare = await page.$eval('#compareFrame', frame => frame.style.getPropertyValue('--compare') === '70%');
+    await page.click('[data-visual-tab="hitches"]');
+    await page.$eval('#basketAngle', input => { input.value = '45'; input.dispatchEvent(new Event('input', { bubbles: true })); });
+    const hitch = (await txt('.hitch-angle output')) === '45°';
+    await page.click('[data-visual-tab="bend"]');
+    await page.$eval('#bendRange', input => { input.value = '2'; input.dispatchEvent(new Event('input', { bubbles: true })); });
+    const bend = (await txt('#visual-bend .metric:first-child b')) === '2.0';
+    await page.click('[data-visual-tab="path"]'); await page.click('#pathMode');
+    const path = (await txt('#pathMode')).includes('balanced');
+    await page.click('[data-visual-tab="tags"]'); await page.click('[data-tag-field="manufacturer"]');
+    const tag = await page.$eval('[data-tag-field="manufacturer"]', button => button.classList.contains('active'));
+    await page.click('[data-visual-tab="model"]'); await page.click('[data-legs="4"]');
+    const model = await page.$eval('[data-legs="4"]', button => button.classList.contains('active'));
+    await page.click('#closeTool');
+    return compare && hitch && bend && path && tag && model;
+  });
+  await check('public learner surface has no instructor link', async () =>
+    (await page.$$('#instructorOpen, .resource-grid [data-open-tool="instructor"]')).length === 0);
 
   // ---------- 9. Instructor mode ----------
-  await check('nav "Instructor mode" opens dialog on agenda tab', async () => {
-    await page.click('#instructorOpen'); await page.waitForTimeout(250);
+  const openInstructor = async () => {
+    const gateUrl = BASE + (BASE.includes('?') ? '&' : '?') + 'instructor=1';
+    await page.goto(gateUrl, { waitUntil: 'load' }); await page.waitForTimeout(250);
+    await page.fill('#instructorPasscode', 'Rigging101-Facilitator-2026');
+    await page.click('#instructorUnlock'); await page.waitForTimeout(300);
+  };
+  await check('unlisted instructor route requires and accepts the facilitator passcode', async () => {
+    await openInstructor();
     return await page.$eval('#instructorDialog', d => d.open) &&
       (await page.getAttribute('[data-instructor-tab="agenda"]', 'aria-selected')) === 'true';
   });
@@ -506,7 +552,7 @@ async function check(name, fn) {
     await page.click('#closeTool'); await page.waitForTimeout(150);
     return dialogClosed && tool && tileSel === 'true' && detail === 'Sling eye';
   });
-  await page.click('#instructorOpen'); await page.waitForTimeout(250);
+  await openInstructor();
   await page.click('[data-instructor-tab="rubric"]'); await page.waitForTimeout(150);
   await check('rubric radios + text fields + "Clear rubric"', async () => {
     await page.check('input[name="rubric-inspection"][value="independent"]');
@@ -528,7 +574,7 @@ async function check(name, fn) {
     await page.click('#clearProgress'); await page.waitForTimeout(300);
     const comp = await txt('#componentProgressText');
     const dec = await txt('#decisionProgressText');
-    return comp === '0 / 30' && dec === '0 / 6';
+    return comp === 'Not started' && dec === 'Not started';
   });
 
   await check('no JS errors accumulated across full run', async () =>
