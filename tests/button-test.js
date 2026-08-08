@@ -137,6 +137,16 @@ async function check(name, fn) {
 
   // ---------- 4. Explorer (reference tool) ----------
   await page.click('.hero-actions [data-open-tool="explorer"]'); await page.waitForTimeout(300);
+  await check('upper tool tabs expose four direct destinations', async () => {
+    const tabs = await page.$$eval('#toolTabs [data-tool-tab]', buttons => buttons.map(button => ({ id: button.dataset.toolTab, selected: button.getAttribute('aria-selected') })));
+    return tabs.length === 4 && tabs.some(tab => tab.id === 'explorer' && tab.selected === 'true');
+  });
+  await check('upper tool tabs switch tools without returning to the hub', async () => {
+    await page.click('#toolTabs [data-tool-tab="share"]'); await page.waitForTimeout(250);
+    const shareOpen = await page.evaluate(() => document.body.dataset.tool === 'share');
+    await page.click('#toolTabs [data-tool-tab="explorer"]'); await page.waitForTimeout(250);
+    return shareOpen && await page.evaluate(() => document.body.dataset.tool === 'explorer');
+  });
   // focus filter
   for (const f of ['hook', 'sling', 'load', 'all']) {
     await check(`catalog filter "${f}"`, async () => {
@@ -145,19 +155,15 @@ async function check(name, fn) {
       return await page.$eval(`#focusControls button[data-focus="${f}"]`, b => b.classList.contains('active'));
     });
   }
-  // angle buttons
-  for (const a of [45, 30, 60]) {
-    await check(`sling angle ${a}° button updates readout`, async () => {
-      await page.click(`#angleControls button[data-angle="${a}"]`);
-      await page.waitForTimeout(120);
-      const active = await page.$eval(`#angleControls button[data-angle="${a}"]`, b => b.classList.contains('active'));
-      const readout = await txt('#readout');
-      return active && readout.includes(`${a}°`);
-    });
-  }
+  await check('component catalog excludes sling-tension calculator controls', async () => {
+    return await page.evaluate(() =>
+      !document.querySelector('#angleControls, #lafTable, #readout, #calculationNote') &&
+      !document.querySelector('#layerControls [data-layer="tension"], #layerControls [data-layer="geometry"]')
+    );
+  });
   // layer toggles: each must flip aria-pressed AND visibly add/remove its row in the stage overlay band
   const layerBtns = await page.$$eval('#layerControls button', els => els.map(e => ({ key: e.dataset.layer, name: e.textContent })));
-  const bandLabel = { labels: 'LABELS', loadpath: 'LOAD PATH', tension: 'TENSION', geometry: 'GEOMETRY', contact: 'CONTACT', cg: 'CENTER OF GRAVITY', inspection: 'INSPECTION' };
+  const bandLabel = { labels: 'LABELS', loadpath: 'LOAD PATH', contact: 'CONTACT', cg: 'CENTER OF GRAVITY', inspection: 'INSPECTION' };
   for (const l of layerBtns) {
     await check(`technical layer toggle "${l.key}"`, async () => {
       const before = await page.$eval(`#layerControls button[data-layer="${l.key}"]`, b => b.getAttribute('aria-pressed'));
@@ -192,7 +198,7 @@ async function check(name, fn) {
     });
     return visible;
   });
-  await check('overlay schematic renders on compact/mobile widths', async () => {
+  await check('reference overlay remains text-only on compact/mobile widths', async () => {
     const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const mp = await mctx.newPage();
     await mp.goto(BASE, { waitUntil: 'load' });
@@ -200,24 +206,9 @@ async function check(name, fn) {
     await mp.reload({ waitUntil: 'load' });
     await mp.waitForTimeout(400);
     await mp.click('.hero-actions [data-open-tool="explorer"]'); await mp.waitForTimeout(400);
-    const hasSketch = await mp.$eval('#layerScene', g => g.querySelectorAll('line, circle').length > 0);
+    const focused = await mp.$eval('#layerScene', g => g.textContent.includes('LOAD PATH') && !g.querySelector('line, circle'));
     await mctx.close();
-    return hasSketch;
-  });
-  await check('weight input recalculates readout', async () => {
-    await page.click('#configTiles .tile[data-config="bridle2"]'); await page.waitForTimeout(150);
-    await page.click('#angleControls button[data-angle="60"]'); await page.waitForTimeout(150);
-    await page.fill('#weightInput', '20000');
-    await page.dispatchEvent('#weightInput', 'change');
-    await page.waitForTimeout(250);
-    // 20,000 lb / 2 legs * 1.155 LAF = 11,547 lb per leg
-    return (await txt('#readout')).includes('11,547');
-  });
-  await check('"Show kg" unit toggle', async () => {
-    await page.click('#unitToggle'); await page.waitForTimeout(120);
-    const on = (await txt('#unitToggle')) === 'Showing kg' && (await txt('#readout')).includes('kg');
-    await page.click('#unitToggle'); await page.waitForTimeout(120);
-    return on && (await txt('#unitToggle')) === 'Show kg';
+    return focused;
   });
   await check('"Print reference" triggers print', async () => {
     await page.click('#printGuide'); await page.waitForTimeout(100);
@@ -349,6 +340,13 @@ async function check(name, fn) {
     await page.fill('#shareWeight', '15000');
     await page.click('#applyShareWeight'); await page.waitForTimeout(150);
     return (await txt('#shareMetrics')).includes('lb');
+  });
+  await check('"Show kg" belongs to the load-share lab', async () => {
+    const visible = await page.$eval('#unitToggle', button => !!button.offsetParent);
+    await page.click('#unitToggle'); await page.waitForTimeout(120);
+    const on = (await txt('#unitToggle')) === 'Showing kg' && (await txt('#shareMetrics')).includes('kg');
+    await page.click('#unitToggle'); await page.waitForTimeout(120);
+    return visible && on && (await txt('#unitToggle')) === 'Show kg';
   });
   await check('CG slider updates output', async () => {
     await page.$eval('#shareCg', el => { el.value = '40'; el.dispatchEvent(new Event('input', { bubbles: true })); });

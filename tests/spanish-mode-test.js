@@ -99,7 +99,14 @@ async function check(name, fn) {
     await page.waitForTimeout(500);
     const lang = await page.evaluate(() => document.documentElement.lang);
     const title = await page.title();
-    return lang === 'es' && title.includes('Laboratorio') && (await txt('#langToggle')) === 'English';
+    const navigationLabels = await page.evaluate(() => [
+      document.querySelector('.nav').getAttribute('aria-label'),
+      document.querySelector('.learner-nav').getAttribute('aria-label'),
+      document.querySelector('#journeyStepper').getAttribute('aria-label'),
+      document.querySelector('.brand').getAttribute('aria-label')
+    ]);
+    return lang === 'es' && title.includes('Laboratorio') && (await txt('#langToggle')) === 'English' &&
+      navigationLabels.join('|') === 'Navegación principal|Áreas del participante|Seis pasos del curso|Visitar Crane Qualified';
   });
   await check('hero and course render in Spanish', async () =>
     (await txt('.hero-inner h1')).toUpperCase().includes('RUTA DE LA CARGA') &&
@@ -145,28 +152,29 @@ async function check(name, fn) {
     const toast = await txt('#toast');
     return step.toUpperCase().includes('DOMINADO') && toast.includes('dominada');
   });
-  await check('explorer readout, LAF table, and lens band in Spanish', async () => {
+  await check('explorer stays focused on catalog and inspection in Spanish', async () => {
     await openTool('explorer');
-    const readout = await txt('#readout');
-    const caption = await txt('#lafTable caption');
     const band = await page.innerHTML('#layerScene');
-    return readout.toUpperCase().includes('CARGA SOPORTADA') && caption.toUpperCase().includes('FACTOR DE ÁNGULO') && band.includes('LENTE TÉCNICO');
+    const tabs = (await txt('#toolTabs')).toUpperCase();
+    const removed = await page.evaluate(() => !document.querySelector('#angleControls, #lafTable, #readout, #layerControls [data-layer="tension"], #layerControls [data-layer="geometry"]'));
+    return removed && band.includes('LENTE TÉCNICO') && tabs.includes('COMPONENTES') && tabs.includes('ESCENARIO') && tabs.includes('REPARTO DE CARGA') && tabs.includes('EVALUACIÓN');
   });
   await check('layer toggle: Spanish toast + Spanish count label', async () => {
-    await page.click('#layerControls button[data-layer="tension"]');
-    await page.waitForTimeout(300);
-    const toastOff = await txt('#toast');
-    const label = await txt('#layerLabel');
-    await page.click('#layerControls button[data-layer="tension"]');
+    await page.click('#layerControls button[data-layer="inspection"]');
     await page.waitForTimeout(300);
     const toastOn = await txt('#toast');
-    return toastOff.includes('desactivado') && label.toUpperCase().includes('CAPAS TÉCNICAS') && toastOn.includes('activado');
+    const label = await txt('#layerLabel');
+    await page.click('#layerControls button[data-layer="inspection"]');
+    await page.waitForTimeout(300);
+    const toastOff = await txt('#toast');
+    return toastOn.includes('activado') && label.toUpperCase().includes('CAPAS TÉCNICAS') && toastOff.includes('desactivado');
   });
   await check('kg toggle labeled and working in Spanish', async () => {
+    await openTool('share');
     const before = await txt('#unitToggle');
     await page.click('#unitToggle');
     await page.waitForTimeout(300);
-    const demand = await txt('#readout div:last-child strong');
+    const demand = await txt('#shareMetrics');
     await page.click('#unitToggle');
     await page.waitForTimeout(300);
     return before === 'Mostrar kg' && demand.includes('kg');
