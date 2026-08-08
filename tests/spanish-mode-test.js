@@ -114,6 +114,15 @@ async function check(name, fn) {
 
   // ---------- 2. English-leak scans across every tool view ----------
   await check('ES leak scan · course view', () => scan('course', EN_MARKERS));
+  await openTool('visual');
+  await check('ES leak scan · all visual lab topics', async () => {
+    for (const id of ['inspection','angle','hitches','bend','path','tags','model']) {
+      await page.click(`[data-visual-tab="${id}"]`); await page.waitForTimeout(80);
+      await scan(`visual/${id}`, EN_MARKERS);
+    }
+    return true;
+  });
+  await closeTool();
   await openTool('explorer');
   await check('ES leak scan · explorer', () => scan('explorer', EN_MARKERS));
   await check('ES leak scan · explorer with component lesson open', async () => {
@@ -206,23 +215,35 @@ async function check(name, fn) {
     return (await txt('#toast')).includes('Resumen de progreso copiado');
   });
 
-  // ---------- 4. Persistence + clean return to English ----------
-  await check('Spanish persists across reload', async () => {
+  // ---------- 4. Session-only state + clean return to English ----------
+  await check('reload clears Spanish because browser storage is not used', async () => {
     await page.reload({ waitUntil: 'load' });
     await page.waitForTimeout(500);
-    return (await page.evaluate(() => document.documentElement.lang)) === 'es' &&
-      (await txt('.hero-inner h1')).toUpperCase().includes('RUTA DE LA CARGA');
-  });
-  await check('toggle restores English exactly', async () => {
-    await page.click('#langToggle');
-    await page.waitForTimeout(500);
     return (await page.evaluate(() => document.documentElement.lang)) === 'en' &&
+      (await txt('.hero-inner h1')).toUpperCase().includes('LOAD PATH');
+  });
+  await check('toggle enters Spanish and restores English exactly', async () => {
+    await page.click('#langToggle');
+    await page.waitForTimeout(300);
+    const spanish = (await page.evaluate(() => document.documentElement.lang)) === 'es';
+    await page.click('#langToggle');
+    await page.waitForTimeout(300);
+    return spanish && (await page.evaluate(() => document.documentElement.lang)) === 'en' &&
       (await txt('.hero-inner h1')).toUpperCase().includes('LOAD PATH') &&
       (await txt('#langToggle')) === 'Español';
   });
 
   // ---------- 5. Spanish-leak scans in English mode ----------
   await check('EN leak scan · course view', () => scan('course/en', ES_MARKERS));
+  await openTool('visual');
+  await check('EN leak scan · all visual lab topics', async () => {
+    for (const id of ['inspection','angle','hitches','bend','path','tags','model']) {
+      await page.click(`[data-visual-tab="${id}"]`); await page.waitForTimeout(80);
+      await scan(`visual/${id}/en`, ES_MARKERS);
+    }
+    return true;
+  });
+  await closeTool();
   await openTool('explorer');
   await check('EN leak scan · explorer', () => scan('explorer/en', ES_MARKERS));
   await closeTool();
