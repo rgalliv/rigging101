@@ -306,6 +306,40 @@ async function check(name, fn) {
   // ---------- 6. Load-share lab ----------
   await page.click('#closeTool'); await page.waitForTimeout(200);
   await page.click('.resource-grid [data-open-tool="share"]'); await page.waitForTimeout(400);
+  await check('load-share analysis exposes four focused upper tabs', async () =>
+    (await page.$$eval('[data-share-panel]', buttons => buttons.map(button => button.textContent.trim()).join('|'))) === 'Model|Capacity|Evidence|Explain');
+  await check('elevation / plan view toggle changes the diagram', async () => {
+    await page.click('[data-share-view="plan"]'); await page.waitForTimeout(100);
+    const plan = await page.$eval('#shareSvg', svg => !!svg.querySelector('.share-plan-load'));
+    await page.click('[data-share-view="elevation"]'); await page.waitForTimeout(100);
+    return plan && await page.$eval('#shareSvg', svg => !!svg.querySelector('image'));
+  });
+  await check('capacity editing marks the analysis stale', async () => {
+    await page.click('[data-share-panel="capacity"]');
+    await page.fill('[data-capacity-key="leftSlingWll"]', '4000');
+    return (await txt('#shareFreshness')) === 'Changes not applied';
+  });
+  await check('entered WLL overload blocks the training configuration', async () => {
+    for (const key of ['rightSlingWll','leftHardwareWll','rightHardwareWll','topHardwareWll']) await page.fill(`[data-capacity-key="${key}"]`, '20000');
+    await page.click('[data-apply-capacity]'); await page.waitForTimeout(120);
+    return (await txt('.share-system-status b')).includes('STOP') && await page.$$eval('.share-capacity-check.overloaded', els => els.length) === 1 && (await txt('#shareFreshness')) === 'Analysis current';
+  });
+  await check('capacity Clear removes entered product ratings', async () => {
+    await page.click('[data-clear-capacity]'); await page.waitForTimeout(100);
+    return (await txt('.share-system-status b')).includes('Enter identified capacities') && await page.$$eval('[data-capacity-key]', fields => fields.every(field => field.value === ''));
+  });
+  await check('evidence tab records verified versus estimated sources', async () => {
+    await page.click('[data-share-panel="assumptions"]');
+    await page.selectOption('[data-evidence="cg"]', 'estimated'); await page.waitForTimeout(100);
+    return (await txt('#sharePanelAssumptions')).includes('Estimated') && (await txt('#sharePanelAssumptions')).includes('Model assumption');
+  });
+  await check('Explain tab copies a defensible analysis summary', async () => {
+    await page.click('[data-share-panel="explain"]');
+    await page.click('[data-copy-analysis]'); await page.waitForTimeout(100);
+    const clip = await page.evaluate(() => navigator.clipboard.readText()).catch(() => '');
+    await page.click('[data-share-panel="model"]');
+    return clip.includes('LOAD SHARE ANALYSIS') && clip.includes('Training support only');
+  });
   await check('training-load input + Apply', async () => {
     await page.fill('#shareWeight', '15000');
     await page.click('#applyShareWeight'); await page.waitForTimeout(150);

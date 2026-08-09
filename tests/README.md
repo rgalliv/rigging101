@@ -2,7 +2,7 @@
 
 `button-test.js` drives a real Chromium browser (Playwright) through **every
 button on every tab/page** of `index.html` and asserts the expected state
-change for each one — 134 checks covering:
+change for each one — 141 checks covering:
 
 - Nav & hero (Start course, Instructor mode, Open reference tools, Back-to-course bar)
 - Rigging library — all 10 configuration tiles (visible only in explorer mode, by design)
@@ -16,8 +16,10 @@ change for each one — 134 checks covering:
   Unviewed only, Inspection criteria shortcut, component list, 5 detail tabs,
   Previous/Next part, zoom in/out/reset, the 6 review-decision steps
 - Scenario lab — all 6 evidence hotspots + list buttons, unlock, all 4 decisions
-- Load-share lab — weight Apply, kg unit toggle, CG slider, 3 hook-height buttons,
-  all 6 presets, play/pause animation, 3 answer buttons, Check decision, Reset model
+- Load-share lab — elevation/plan views; Model, Capacity, Evidence, and Explain tabs;
+  entered-WLL overload checks; calculation freshness; assumptions ledger; copied analysis;
+  weight Apply, kg unit toggle, CG slider, 3 hook-height buttons, all 6 presets,
+  play/pause animation, 3 answer buttons, Check decision, Reset model
 - Final knowledge check — miss/restart cycle, full 8-question 100% mastery,
   completion card, Copy progress summary (clipboard + toast)
 - Resource cards — all 6 learner tools open the right tool/dialog
