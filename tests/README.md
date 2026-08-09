@@ -2,7 +2,7 @@
 
 `button-test.js` drives a real Chromium browser (Playwright) through **every
 button on every tab/page** of `index.html` and asserts the expected state
-change for each one — 141 checks covering:
+change for each one — 134 checks covering:
 
 - Nav & hero (Start course, Instructor mode, Open reference tools, Back-to-course bar)
 - Rigging library — all 10 configuration tiles (visible only in explorer mode, by design)
@@ -11,8 +11,8 @@ change for each one — 141 checks covering:
 - Upper tool tabs — direct Visual Labs, Components, Scenario, Load Share, and Assessment navigation
 - Visual rigging lab — seven internal topic tabs plus inspection comparison, sling-angle,
   hitch, bend-diameter, load-path, tag-reader, CG, and multi-leg controls
-- Explorer reference tool — catalog filters, all 5 component/inspection
-  layer toggles, focused text-only overlays, print, search,
+- Explorer reference tool — catalog filters, a guard confirming the retired
+  technical-layer controls and photograph overlays stay absent, print, search,
   Unviewed only, Inspection criteria shortcut, component list, 5 detail tabs,
   Previous/Next part, zoom in/out/reset, the 6 review-decision steps
 - Scenario lab — all 6 evidence hotspots + list buttons, unlock, all 4 decisions
@@ -67,17 +67,16 @@ W=1400 H=950 node tests/visibility-scan.js # desktop
 ```
 
 Exit code `0` = every clicked button produced a visible response; `2` = at
-least one button was flagged. This is the scan that caught the technical-layer
-buttons (effect rendered ~1,300px off-screen on phones) and the zoom controls
-(clickable no-ops at 100% zoom, now disabled instead).
+least one button was flagged. This scan also verifies that zoom controls at
+100% are disabled instead of remaining clickable no-ops.
 
 ## Spanish-mode suite (`spanish-mode-test.js`)
 
-Guards the bilingual (English / Latin American Spanish) experience — 32 checks:
+Guards the bilingual (English / Latin American Spanish) experience — 31 checks:
 
 - Language toggle, `<html lang>`, document title, and session-only reset across reload
 - Interactive flows while the UI is in Spanish: course decision, scenario
-  unlock + decision, quiz answer, layer toggles (toast + count label),
+  unlock + decision, quiz answer, the absence of retired technical layers,
   kg toggle, visual-lab controls, progress-summary export — answer keys derived from the embedded
   FNV hashes, same as `button-test.js`
 - **Leak scans**: with the UI in Spanish, every tool view (course, explorer,

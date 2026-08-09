@@ -2,7 +2,7 @@
    Same-origin GET requests are served cache-first and revalidated in the
    background, so the lab keeps working in shops and yards with poor
    connectivity once it has loaded once. Bump CACHE to invalidate. */
-const CACHE = "rig101-v13";
+const CACHE = "rig101-v15";
 const CORE = ["./", "index.html", "visual-labs.css", "visual-labs.js", "manifest.webmanifest"];
 
 self.addEventListener("install", event => {

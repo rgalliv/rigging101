@@ -163,58 +163,14 @@ async function check(name, fn) {
   }
   await check('component catalog excludes sling-tension calculator controls', async () => {
     return await page.evaluate(() =>
-      !document.querySelector('#angleControls, #lafTable, #readout, #calculationNote') &&
-      !document.querySelector('#layerControls [data-layer="tension"], #layerControls [data-layer="geometry"]')
+      !document.querySelector('#angleControls, #lafTable, #readout, #calculationNote')
     );
   });
-  // layer toggles: each must flip aria-pressed AND visibly add/remove its row in the stage overlay band
-  const layerBtns = await page.$$eval('#layerControls button', els => els.map(e => ({ key: e.dataset.layer, name: e.textContent })));
-  const bandLabel = { labels: 'LABELS', loadpath: 'LOAD PATH', contact: 'CONTACT', cg: 'CENTER OF GRAVITY', inspection: 'INSPECTION' };
-  for (const l of layerBtns) {
-    await check(`technical layer toggle "${l.key}"`, async () => {
-      const before = await page.$eval(`#layerControls button[data-layer="${l.key}"]`, b => b.getAttribute('aria-pressed'));
-      await page.click(`#layerControls button[data-layer="${l.key}"]`);
-      await page.waitForTimeout(150);
-      const after = await page.$eval(`#layerControls button[data-layer="${l.key}"]`, b => b.getAttribute('aria-pressed'));
-      const inBand = (await txt('#layerScene')).includes(bandLabel[l.key]);
-      const toast = await page.$eval('#toast', el => el.textContent);
-      if (before === after) throw new Error('aria-pressed did not flip');
-      if (inBand !== (after === 'true')) throw new Error(`overlay band row mismatch: pressed=${after} inBand=${inBand}`);
-      if (!toast.includes('lens')) throw new Error('no toast feedback: ' + toast);
-      return true;
-    });
-  }
-  await check('layer label shows live on-count', async () => {
-    const label = await txt('#layerLabel');
-    const on = await page.$$eval('#layerControls button[aria-pressed="true"]', els => els.length);
-    return label.includes(on ? `${on} on` : 'all off');
-  });
-  await check('turning a layer on scrolls the stage into view when off-screen', async () => {
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await page.$eval('#layerControls', el => el.scrollIntoView({ block: 'center' }));
-    await page.waitForTimeout(150);
-    const l = layerBtns.find(x => x.key === 'loadpath');
-    const wasOn = await page.$eval('#layerControls button[data-layer="loadpath"]', b => b.getAttribute('aria-pressed') === 'true');
-    if (wasOn) { await page.click('#layerControls button[data-layer="loadpath"]'); await page.waitForTimeout(150); }
-    await page.click('#layerControls button[data-layer="loadpath"]');
-    await page.waitForTimeout(900); // smooth scroll settle
-    const visible = await page.$eval('#stageShell', el => {
-      const r = el.getBoundingClientRect();
-      return r.top < innerHeight && r.bottom > 0;
-    });
-    return visible;
-  });
-  await check('reference overlay remains text-only on compact/mobile widths', async () => {
-    const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-    const mp = await mctx.newPage();
-    await mp.goto(BASE, { waitUntil: 'load' });
-    await mp.evaluate(() => localStorage.clear());
-    await mp.reload({ waitUntil: 'load' });
-    await mp.waitForTimeout(400);
-    await mp.click('.hero-actions [data-open-tool="explorer"]'); await mp.waitForTimeout(400);
-    const focused = await mp.$eval('#layerScene', g => g.textContent.includes('LOAD PATH') && !g.querySelector('line, circle'));
-    await mctx.close();
-    return focused;
+  await check('technical layers and photograph overlays are removed', async () => {
+    return await page.evaluate(() =>
+      !document.querySelector('#layerControls, #layerLabel, #layerScene, [data-layer]') &&
+      !document.body.innerText.toLowerCase().includes('technical layers')
+    );
   });
   await check('"Print reference" triggers print', async () => {
     await page.click('#printGuide'); await page.waitForTimeout(100);
@@ -486,6 +442,13 @@ async function check(name, fn) {
     await page.click('.resource-grid [data-open-tool="visual"]'); await page.waitForTimeout(150);
     await page.$eval('#compareRange', input => { input.value = '70'; input.dispatchEvent(new Event('input', { bubbles: true })); });
     const compare = await page.$eval('#compareFrame', frame => frame.style.getPropertyValue('--compare') === '70%');
+    const images = await page.$$eval('#compareFrame .inspection-photo', items => items.length === 2 && items.every(image => image.complete && image.naturalWidth > 0));
+    await page.$eval('[data-inspection-decision="continue"]', button => button.click());
+    const inspectionMiss = await page.$eval('#inspectionFeedback', feedback => feedback.classList.contains('bad'));
+    await page.$eval('[data-inspection-decision="remove"]', button => button.click());
+    const inspectionCorrect = await page.$eval('#inspectionFeedback', feedback => feedback.classList.contains('good'));
+    await page.$eval('[data-damage="birdcaging"]', button => button.click()); await page.waitForTimeout(100);
+    const inspectionCase = await page.$eval('#compareFrame .defect-diagram', image => image.src.endsWith('/assets/inspection/wire-birdcaging.png') && image.complete && image.naturalWidth > 0);
     await page.click('[data-visual-tab="hitches"]');
     await page.$eval('#basketAngle', input => { input.value = '45'; input.dispatchEvent(new Event('input', { bubbles: true })); });
     const hitch = (await txt('.hitch-angle output')) === '45°';
@@ -499,7 +462,7 @@ async function check(name, fn) {
     await page.click('[data-visual-tab="model"]'); await page.click('[data-legs="4"]');
     const model = await page.$eval('[data-legs="4"]', button => button.classList.contains('active'));
     await page.click('#closeTool');
-    return compare && hitch && bend && path && tag && model;
+    return compare && images && inspectionMiss && inspectionCorrect && inspectionCase && hitch && bend && path && tag && model;
   });
   await check('public learner surface has no instructor link', async () =>
     (await page.$$('#instructorOpen, .resource-grid [data-open-tool="instructor"]')).length === 0);

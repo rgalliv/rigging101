@@ -2,7 +2,7 @@
 
    Guards the bilingual experience two ways:
    1. Functional checks — the language toggle, persistence, and the main
-      interactive flows (course decision, scenario, quiz, layers, kg toggle)
+      interactive flows (course decision, scenario, quiz, catalog, kg toggle)
       all work while the UI is in Latin American Spanish.
    2. Leak scans — with the UI in Spanish, every tool view is swept for
       English marker phrases and common English function words; with the UI
@@ -163,20 +163,9 @@ async function check(name, fn) {
   });
   await check('explorer stays focused on catalog and inspection in Spanish', async () => {
     await openTool('explorer');
-    const band = await page.innerHTML('#layerScene');
     const tabs = (await txt('#toolTabs')).toUpperCase();
-    const removed = await page.evaluate(() => !document.querySelector('#angleControls, #lafTable, #readout, #layerControls [data-layer="tension"], #layerControls [data-layer="geometry"]'));
-    return removed && band.includes('LENTE TÉCNICO') && tabs.includes('COMPONENTES') && tabs.includes('ESCENARIO') && tabs.includes('REPARTO DE CARGA') && tabs.includes('EVALUACIÓN');
-  });
-  await check('layer toggle: Spanish toast + Spanish count label', async () => {
-    await page.click('#layerControls button[data-layer="inspection"]');
-    await page.waitForTimeout(300);
-    const toastOn = await txt('#toast');
-    const label = await txt('#layerLabel');
-    await page.click('#layerControls button[data-layer="inspection"]');
-    await page.waitForTimeout(300);
-    const toastOff = await txt('#toast');
-    return toastOn.includes('activado') && label.toUpperCase().includes('CAPAS TÉCNICAS') && toastOff.includes('desactivado');
+    const removed = await page.evaluate(() => !document.querySelector('#angleControls, #lafTable, #readout, #layerControls, #layerLabel, #layerScene'));
+    return removed && tabs.includes('COMPONENTES') && tabs.includes('ESCENARIO') && tabs.includes('REPARTO DE CARGA') && tabs.includes('EVALUACIÓN');
   });
   await check('kg toggle labeled and working in Spanish', async () => {
     await openTool('share');
