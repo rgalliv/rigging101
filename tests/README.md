@@ -2,15 +2,15 @@
 
 `button-test.js` drives a real Chromium browser (Playwright) through **every
 button on every tab/page** of `index.html` and asserts the expected state
-change for each one — 141 checks covering:
+change for each one — 142 checks covering:
 
 - Nav & hero (Start course, Instructor mode, Open reference tools, Back-to-course bar)
 - Rigging library — all 10 configuration tiles (visible only in explorer mode, by design)
 - 6-step course — stepper, options, Check decision / Try again, Previous / Next,
   full mastery flow for all six decisions
 - Upper tool tabs — direct Visual Labs, Components, Scenario, Load Share, and Assessment navigation
-- Visual rigging lab — seven internal topic tabs plus inspection comparison, sling-angle,
-  hitch, bend-diameter, load-path, tag-reader, CG, and multi-leg controls
+- Field recognition lab — five focused topic tabs for inspection, hitch recognition,
+  bend protection, load-path tracing, and tag reading, plus the Load Share handoff
 - Explorer reference tool — catalog filters, a guard confirming the retired
   technical-layer controls and photograph overlays stay absent, print, search,
   Unviewed only, Inspection criteria shortcut, component list, 5 detail tabs,
@@ -27,7 +27,8 @@ change for each one — 141 checks covering:
   8 agenda checkboxes + reset, 6 reveal-lens toggles, 6 launch-stage buttons,
   rubric fields + Clear rubric, Print guide, Close
 - Glossary dialog open/close
-- Exact controlling-employer footer and no learner-runtime local/session storage APIs
+- Verified CCOS/CraneQualified contact footer, exact controlling-employer language,
+  and no learner-runtime local/session storage APIs
 - Clear progress (run last), and zero JS console/page errors across the whole run
 
 Answer keys are **not** stored in the repo — the script derives correct choices

@@ -116,7 +116,7 @@ async function check(name, fn) {
   await check('ES leak scan · course view', () => scan('course', EN_MARKERS));
   await openTool('visual');
   await check('ES leak scan · all visual lab topics', async () => {
-    for (const id of ['inspection','angle','hitches','bend','path','tags','model']) {
+    for (const id of ['inspection','hitches','bend','path','tags']) {
       await page.click(`[data-visual-tab="${id}"]`); await page.waitForTimeout(80);
       await scan(`visual/${id}`, EN_MARKERS);
     }
@@ -226,7 +226,7 @@ async function check(name, fn) {
   await check('EN leak scan · course view', () => scan('course/en', ES_MARKERS));
   await openTool('visual');
   await check('EN leak scan · all visual lab topics', async () => {
-    for (const id of ['inspection','angle','hitches','bend','path','tags','model']) {
+    for (const id of ['inspection','hitches','bend','path','tags']) {
       await page.click(`[data-visual-tab="${id}"]`); await page.waitForTimeout(80);
       await scan(`visual/${id}/en`, ES_MARKERS);
     }

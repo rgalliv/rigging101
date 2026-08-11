@@ -56,6 +56,18 @@ async function check(name, fn) {
   await check('page loads with no JS errors', async () => consoleErrors.length === 0 || (() => { throw new Error(consoleErrors.join(' | ')) })());
   await check('public footer carries the controlling-employer determination', async () =>
     (await txt('.employer-determination')) === 'All qualification determinations rest with the controlling employer per 29 CFR 1926 Subpart CC.');
+  await check('footer exposes verified CCOS and CraneQualified contact links', async () =>
+    await page.evaluate(() => {
+      const logo = document.querySelector('.footer-school-logo img');
+      return Boolean(
+        logo?.complete && logo.naturalWidth > 0 &&
+        document.querySelector('footer a[href="tel:+13034771044"]') &&
+        document.querySelector('footer a[href="mailto:office@ccoschool.us"]') &&
+        document.querySelector('footer a[href="https://ccoschool.us/"]') &&
+        document.querySelector('footer a[href="https://www.cranequalified.com/"]') &&
+        document.querySelector('footer')?.textContent?.includes('4020 Kodiak Court')
+      );
+    }));
   await check('learner runtime does not use localStorage or sessionStorage', async () => {
     const source = await page.evaluate(async () => (await fetch('index.html')).text() + (await fetch('visual-labs.js')).text());
     return !/\blocalStorage\b|\bsessionStorage\b/.test(source);
@@ -459,20 +471,19 @@ async function check(name, fn) {
     await page.click('#glossaryClose'); await page.waitForTimeout(150);
     return await page.$eval('#glossaryDialog', d => !d.open);
   });
-  await check('visual lab exposes seven focused topic tabs', async () => {
+  await check('field recognition lab exposes five focused topic tabs', async () => {
     await page.click('.resource-grid [data-open-tool="visual"]'); await page.waitForTimeout(250);
-    return (await page.$$eval('#visualTabs [data-visual-tab]', tabs => tabs.length)) === 7;
+    const ids = await page.$$eval('#visualTabs [data-visual-tab]', tabs => tabs.map(tab => tab.dataset.visualTab).join(','));
+    return ids === 'inspection,hitches,bend,path,tags' &&
+      (await page.$$('#visual-angle, #visual-model, #quickAngle')).length === 0;
   });
-  await check('visual lab angle instrument responds to the slider', async () => {
-    await page.click('[data-visual-tab="angle"]'); await page.waitForTimeout(150);
-    const before = await txt('#visual-angle .metric-stack .metric:nth-child(3) b');
-    await page.$eval('#angleRange', input => { input.value = '30'; input.dispatchEvent(new Event('input', { bubbles: true })); });
-    await page.waitForTimeout(150);
-    const after = await txt('#visual-angle .metric-stack .metric:nth-child(3) b');
+  await check('recognition lab hands geometry and CG work to Load Share', async () => {
+    await page.click('#visualOpenShare'); await page.waitForTimeout(200);
+    const open = await page.evaluate(() => document.body.dataset.tool === 'share');
     await page.click('#closeTool');
-    return before !== after && after.includes('10,000');
+    return open;
   });
-  await check('inspection, hitch, bend, path, tag, and CG visual controls respond', async () => {
+  await check('inspection, hitch, bend, path, and tag visual controls respond', async () => {
     await page.click('.resource-grid [data-open-tool="visual"]'); await page.waitForTimeout(150);
     await page.$eval('#compareRange', input => { input.value = '70'; input.dispatchEvent(new Event('input', { bubbles: true })); });
     const compare = await page.$eval('#compareFrame', frame => frame.style.getPropertyValue('--compare') === '70%');
@@ -493,10 +504,8 @@ async function check(name, fn) {
     const path = (await txt('#pathMode')).includes('balanced');
     await page.click('[data-visual-tab="tags"]'); await page.click('[data-tag-field="manufacturer"]');
     const tag = await page.$eval('[data-tag-field="manufacturer"]', button => button.classList.contains('active'));
-    await page.click('[data-visual-tab="model"]'); await page.click('[data-legs="4"]');
-    const model = await page.$eval('[data-legs="4"]', button => button.classList.contains('active'));
     await page.click('#closeTool');
-    return compare && images && inspectionMiss && inspectionCorrect && inspectionCase && hitch && bend && path && tag && model;
+    return compare && images && inspectionMiss && inspectionCorrect && inspectionCase && hitch && bend && path && tag;
   });
   await check('public learner surface has no instructor link', async () =>
     (await page.$$('#instructorOpen, .resource-grid [data-open-tool="instructor"]')).length === 0);
