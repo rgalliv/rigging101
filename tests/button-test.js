@@ -68,9 +68,10 @@ async function check(name, fn) {
         document.querySelector('footer')?.textContent?.includes('4020 Kodiak Court')
       );
     }));
-  await check('learner runtime does not use localStorage or sessionStorage', async () => {
+  await check('learner record uses the versioned local envelope and avoids sessionStorage', async () => {
     const source = await page.evaluate(async () => (await fetch('index.html')).text() + (await fetch('visual-labs.js')).text());
-    return !/\blocalStorage\b|\bsessionStorage\b/.test(source);
+    const envelope = await page.evaluate(() => JSON.parse(localStorage.getItem('cq.rig101.recordEnvelope') || 'null'));
+    return envelope?.schemaVersion === '2.0' && envelope?.storage === 'device-local' && !/\bsessionStorage\b/.test(source);
   });
 
   // ---------- 1. Nav / hero ----------
@@ -377,7 +378,7 @@ async function check(name, fn) {
     });
   }
   const presets = await page.$$eval('#sharePresets [data-share-preset]', els => els.map(e => e.dataset.sharePreset));
-  await check('6 practice-scenario presets render', async () => presets.length === 6);
+  await check('7 practice-scenario presets render, including the near-30-degree case', async () => presets.length === 7 && presets.includes('anglelimit'));
   for (const p of presets) {
     await check(`share preset "${p}" applies its scenario`, async () => {
       await page.click(`[data-share-preset="${p}"]`);
@@ -416,23 +417,23 @@ async function check(name, fn) {
   // ---------- 7. Final knowledge check ----------
   await page.click('#closeTool'); await page.waitForTimeout(200);
   await page.click('.resource-grid [data-open-tool="mastery"]'); await page.waitForTimeout(400);
-  await check('quiz wrong answer -> miss feedback, then restart cycle works', async () => {
+  await check('quiz miss is gated, Retry reshuffles, and correction unlocks Next', async () => {
     const wrong = (ANSWERS['RIG101_q1'] + 1) % 4;
+    const before = await page.$$eval('#quizBody .quiz-option', options => options.map(o => o.dataset.qchoice).join(','));
     await page.click(`#quizBody .quiz-option[data-qchoice="${wrong}"]`);
     await page.click('#checkAnswer'); await page.waitForTimeout(150);
     const bad = /bad/.test(await page.getAttribute('#quizFeedback', 'class'));
-    // walk to the end so the miss forces a restart
-    for (let i = 0; i < 8; i++) {
-      const nextTxt = await txt('#nextQuestion');
-      const disabled = await page.$eval('#nextQuestion', b => b.disabled);
-      if (disabled) { await page.click(`#quizBody .quiz-option[data-qchoice="0"]`); await page.click('#checkAnswer'); await page.waitForTimeout(120); }
-      await page.click('#nextQuestion'); await page.waitForTimeout(150);
-      if ((await txt('#quizCount')) === 'Question 1 of 8') break;
-    }
-    return bad && (await txt('#quizCount')) === 'Question 1 of 8';
+    const gated = await page.$eval('#nextQuestion', b => b.disabled);
+    await page.click('#checkAnswer'); await page.waitForTimeout(150);
+    const after = await page.$$eval('#quizBody .quiz-option', options => options.map(o => o.dataset.qchoice).join(','));
+    await page.click(`#quizBody .quiz-option[data-qchoice="${ANSWERS.RIG101_q1}"]`);
+    await page.click('#checkAnswer'); await page.waitForTimeout(150);
+    const unlocked = !(await page.$eval('#nextQuestion', b => b.disabled));
+    return bad && gated && before !== after && unlocked;
   });
   await check('quiz: all 8 correct -> 100% mastery', async () => {
-    for (let i = 1; i <= 8; i++) {
+    await page.click('#nextQuestion'); await page.waitForTimeout(150);
+    for (let i = 2; i <= 8; i++) {
       await page.click(`#quizBody .quiz-option[data-qchoice="${ANSWERS['RIG101_q' + i]}"]`);
       await page.click('#checkAnswer'); await page.waitForTimeout(120);
       const good = /good/.test(await page.getAttribute('#quizFeedback', 'class'));
@@ -507,8 +508,8 @@ async function check(name, fn) {
     await page.click('#closeTool');
     return compare && images && inspectionMiss && inspectionCorrect && inspectionCase && hitch && bend && path && tag;
   });
-  await check('public learner surface has no instructor link', async () =>
-    (await page.$$('#instructorOpen, .resource-grid [data-open-tool="instructor"]')).length === 0);
+  await check('top navigation exposes the instructor agenda entry', async () =>
+    (await page.$$('#instructorAgendaNav')).length === 1 && (await txt('#instructorAgendaNav')).includes('Instructor'));
 
   // ---------- 9. Instructor mode ----------
   const openInstructor = async () => {

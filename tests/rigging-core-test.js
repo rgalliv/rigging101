@@ -58,6 +58,32 @@ check("entered overload blocks the configuration", () => {
   assert(value.warnings.includes("component_overloaded"));
 });
 
+check("capacity bands honor the 80, 95, and 100 percent boundaries", () => {
+  const baseline = core.solveTwoPoint({ ...readyInput, capacities: {} });
+  const demand = baseline.legs.left.tension;
+  const statusAt = ratio => core.solveTwoPoint({
+    ...readyInput,
+    capacities: { ...readyInput.capacities, leftSlingWll: demand / ratio }
+  }).checks.find(item => item.key === "leftSlingWll").status;
+  assert.strictEqual(statusAt(0.799), "within_wll");
+  assert.strictEqual(statusAt(0.80), "elevated");
+  assert.strictEqual(statusAt(0.95), "critical");
+  assert.strictEqual(statusAt(1.00), "critical");
+  assert.strictEqual(statusAt(1.001), "overloaded");
+});
+
+check("employer thresholds are configurable and validated", () => {
+  const baseline = core.solveTwoPoint({ ...readyInput, capacities: {} });
+  const demand = baseline.legs.left.tension;
+  const value = core.solveTwoPoint({
+    ...readyInput,
+    thresholds: { elevated: 0.70, critical: 0.90 },
+    capacities: { ...readyInput.capacities, leftSlingWll: demand / 0.72 }
+  });
+  assert.strictEqual(value.checks.find(item => item.key === "leftSlingWll").status, "elevated");
+  assert.throws(() => core.solveTwoPoint({ ...readyInput, thresholds: { elevated: 0.95, critical: 0.90 } }));
+});
+
 check("unverified evidence is a stop signal", () => {
   const value = core.solveTwoPoint({ ...readyInput, evidence: { ...readyInput.evidence, cg: "estimated" } });
   assert.strictEqual(value.status, "verified_information_required");

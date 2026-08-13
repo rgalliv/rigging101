@@ -26,19 +26,26 @@
     return Number.isFinite(number) && number > 0 ? number : null;
   }
 
-  function capacityCheck(key, label, demand, wll) {
+  function capacityCheck(key, label, demand, wll, thresholds) {
     const rated = optionalPositive(wll);
     if (rated === null) {
       return { key, label, demand, wll: null, utilization: null, status: "missing" };
     }
     const utilization = demand / rated;
+    const elevatedAt = thresholds.elevated;
+    const criticalAt = thresholds.critical;
+    const status = utilization > 1
+      ? "overloaded"
+      : utilization >= criticalAt
+        ? "critical"
+        : utilization >= elevatedAt ? "elevated" : "within_wll";
     return {
       key,
       label,
       demand,
       wll: rated,
       utilization,
-      status: utilization > 1 ? "overloaded" : "within_wll"
+      status
     };
   }
 
@@ -78,12 +85,19 @@
     const equilibriumResidual = Math.abs(leftHorizontal - rightHorizontal);
 
     const capacities = input.capacities || {};
+    const thresholds = {
+      elevated: Number.isFinite(Number(input.thresholds?.elevated)) ? Number(input.thresholds.elevated) : 0.80,
+      critical: Number.isFinite(Number(input.thresholds?.critical)) ? Number(input.thresholds.critical) : 0.95
+    };
+    if (thresholds.elevated < 0 || thresholds.critical <= thresholds.elevated || thresholds.critical > 1) {
+      throw new RangeError("capacity thresholds must satisfy 0 <= elevated < critical <= 1");
+    }
     const checks = [
-      capacityCheck("leftSlingWll", "Left sling", leftTension, capacities.leftSlingWll),
-      capacityCheck("rightSlingWll", "Right sling", rightTension, capacities.rightSlingWll),
-      capacityCheck("leftHardwareWll", "Left lower hardware", leftTension, capacities.leftHardwareWll),
-      capacityCheck("rightHardwareWll", "Right lower hardware", rightTension, capacities.rightHardwareWll),
-      capacityCheck("topHardwareWll", "Top hardware", totalLoad, capacities.topHardwareWll)
+      capacityCheck("leftSlingWll", "Left sling", leftTension, capacities.leftSlingWll, thresholds),
+      capacityCheck("rightSlingWll", "Right sling", rightTension, capacities.rightSlingWll, thresholds),
+      capacityCheck("leftHardwareWll", "Left lower hardware", leftTension, capacities.leftHardwareWll, thresholds),
+      capacityCheck("rightHardwareWll", "Right lower hardware", rightTension, capacities.rightHardwareWll, thresholds),
+      capacityCheck("topHardwareWll", "Top hardware", totalLoad, capacities.topHardwareWll, thresholds)
     ];
     const ratedChecks = checks.filter(check => check.utilization !== null);
     const governingComponent = ratedChecks.length
@@ -106,6 +120,7 @@
     if (checks.some(check => check.status === "overloaded")) status = "blocked";
     else if (leftAngle < 30 || rightAngle < 30) status = "qualified_analysis_required";
     else if (evidence.weight !== "verified" || evidence.cg !== "verified") status = "verified_information_required";
+    else if (checks.some(check => check.status === "critical")) status = "critical_capacity";
     else if (checks.some(check => check.status === "missing")) status = "capacity_required";
     else if (!evidence.inspectionComplete) status = "inspection_required";
 
@@ -140,6 +155,7 @@
       governingLeg,
       checks,
       governingComponent,
+      thresholds,
       status,
       warnings,
       explanation: [
@@ -160,6 +176,7 @@
       span: Number(input.span),
       cgFromLeft: Number(input.cgFromLeft),
       hookHeight: Number(input.hookHeight),
+      thresholds: [Number(input.thresholds?.elevated) || 0.8, Number(input.thresholds?.critical) || 0.95],
       capacities: REQUIRED_CAPACITY_KEYS.map(key => Number(capacities[key]) || 0),
       evidence: [evidence.weight || "", evidence.cg || "", evidence.geometry || "", Boolean(evidence.inspectionComplete)]
     });

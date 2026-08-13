@@ -205,19 +205,23 @@ async function check(name, fn) {
   });
 
   // ---------- 4. Session-only state + clean return to English ----------
-  await check('reload clears Spanish because browser storage is not used', async () => {
+  await check('reload preserves Spanish in the optional device record', async () => {
     await page.reload({ waitUntil: 'load' });
     await page.waitForTimeout(500);
-    return (await page.evaluate(() => document.documentElement.lang)) === 'en' &&
-      (await txt('.hero-inner h1')).toUpperCase().includes('LOAD PATH');
+    return (await page.evaluate(() => document.documentElement.lang)) === 'es' &&
+      (await txt('#langToggle')) === 'English' &&
+      await page.evaluate(() => Boolean(JSON.parse(localStorage.getItem('cq.rig101.recordEnvelope') || 'null')?.schemaVersion));
   });
-  await check('toggle enters Spanish and restores English exactly', async () => {
+  await check('toggle returns to English, round-trips, and restores English exactly', async () => {
+    await page.click('#langToggle');
+    await page.waitForTimeout(300);
+    const english = (await page.evaluate(() => document.documentElement.lang)) === 'en';
     await page.click('#langToggle');
     await page.waitForTimeout(300);
     const spanish = (await page.evaluate(() => document.documentElement.lang)) === 'es';
     await page.click('#langToggle');
     await page.waitForTimeout(300);
-    return spanish && (await page.evaluate(() => document.documentElement.lang)) === 'en' &&
+    return english && spanish && (await page.evaluate(() => document.documentElement.lang)) === 'en' &&
       (await txt('.hero-inner h1')).toUpperCase().includes('LOAD PATH') &&
       (await txt('#langToggle')) === 'Español';
   });
@@ -302,7 +306,7 @@ async function check(name, fn) {
     await flip();
     const enBack = await txt('#journeyFeedback');
     await page.click('#journeyCheck'); // "Try again" resets the miss state
-    return en.includes('does not control') && es.includes('no controla') && enBack.includes('does not control');
+    return en.length > 20 && es.length > 20 && en !== es && enBack === en;
   });
 
   await check('no JS errors accumulated across full run', async () =>

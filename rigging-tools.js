@@ -13,6 +13,8 @@
   let elevationMarkup = "";
   let appliedFingerprint = "";
   let draftStale = false;
+  let elevatedThreshold = 80;
+  let criticalThreshold = 95;
 
   const text = (en, es) => document.documentElement.lang === "es" ? es : en;
   const number = value => Math.round(value).toLocaleString(document.documentElement.lang === "es" ? "es-MX" : "en-US");
@@ -20,6 +22,14 @@
   const toDisplay = pounds => isKg() ? pounds * 0.45359237 : pounds;
   const fromDisplay = value => isKg() ? value / 0.45359237 : value;
   const force = pounds => `${number(toDisplay(pounds))} ${isKg() ? "kg" : "lb"}`;
+  const preciseForce = (pounds, comparison) => {
+    const converted = toDisplay(pounds);
+    const nearBoundary = Number.isFinite(comparison) && Math.abs(pounds - comparison) < 1;
+    const value = nearBoundary
+      ? converted.toLocaleString(document.documentElement.lang === "es" ? "es-MX" : "en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+      : number(converted);
+    return `${value} ${isKg() ? "kg" : "lb"}`;
+  };
   const unit = () => isKg() ? "kg" : "lb";
 
   function currentHeight() {
@@ -35,6 +45,7 @@
       cgFromLeft: 120 * cgPercent / 100,
       hookHeight: currentHeight(),
       capacities: { ...capacities },
+      thresholds: { elevated: elevatedThreshold / 100, critical: criticalThreshold / 100 },
       evidence: { ...evidence }
     };
   }
@@ -117,6 +128,7 @@
   function statusCopy(status) {
     return ({
       blocked: [text("STOP — entered WLL exceeded","ALTO — se excede el WLL ingresado"), text("At least one entered component rating is below calculated demand.","Al menos una capacidad ingresada está por debajo de la demanda calculada.")],
+      critical_capacity: [text("CRITICAL — escalate","CRÍTICO — escale"), text("At least one component is at 95% or more of its entered WLL. Little margin remains; do not proceed on this comparison.","Al menos un componente está al 95% o más de su WLL ingresado. Queda poco margen; no proceda con esta comparación.")],
       qualified_analysis_required: [text("Qualified analysis required","Se requiere análisis de una persona calificada"), text("A sling angle is below 30°. Do not use this training model as field approval.","Un ángulo de eslinga es menor de 30°. No use este modelo de práctica como aprobación de campo.")],
       verified_information_required: [text("Verify load information","Verifique la información de la carga"), text("Weight or center of gravity is still estimated.","El peso o el centro de gravedad todavía es estimado.")],
       capacity_required: [text("Enter identified capacities","Ingrese las capacidades identificadas"), text("Use the sling tag and marked hardware WLL for this exact configuration.","Use la etiqueta de la eslinga y el WLL marcado del herraje para esta configuración exacta.")],
@@ -130,11 +142,20 @@
     if (!panel) return;
     const labels = capacityLabels();
     const [title, detail] = statusCopy(data.status);
+    const rowStatus = check => {
+      const pct = (check.utilization * 100).toFixed(1).replace(/\.0$/, "");
+      if (check.status === "missing") return [text("WLL needed","Falta WLL"), ""];
+      if (check.status === "overloaded") return [text("EXCEEDED · STOP","EXCEDIDO · ALTO"), text("Entered WLL is below calculated demand.","El WLL ingresado es menor que la demanda calculada.")];
+      if (check.status === "critical") return [text(`CRITICAL · ${pct}% of tag — escalate`,`CRÍTICO · ${pct}% de la etiqueta — escale`), text("Little margin remains for shock load, weight error, or condition. Do not proceed on this comparison.","Queda poco margen para carga de choque, error de peso o condición. No proceda con esta comparación.")];
+      if (check.status === "elevated") return [text(`ELEVATED · ${pct}% of tag`,`ELEVADO · ${pct}% de la etiqueta`), text("Confirm the load weight is verified, not estimated.","Confirme que el peso de la carga esté verificado, no estimado.")];
+      return [text(`WITHIN · ${pct}% of tag`,`DENTRO · ${pct}% de la etiqueta`), ""];
+    };
     panel.innerHTML = `<h3>${text("Check the whole load path","Verifique toda la ruta de carga")}</h3><p class="share-tool-intro">${text("Enter only WLL values read from the sling identification and marked hardware. This lab does not supply product ratings.","Ingrese únicamente los valores de WLL leídos en la identificación de la eslinga y en los herrajes marcados. Este laboratorio no proporciona capacidades de productos.")}</p>
-      <div class="share-system-status ${data.status === "blocked" ? "blocked" : data.status === "ready_for_review" ? "ready" : ""}"><b>${title}</b><span>${detail}</span></div>
+      <div class="share-system-status ${data.status === "blocked" || data.status === "critical_capacity" ? "blocked" : data.status === "ready_for_review" ? "ready" : ""}" aria-live="polite"><b>${title}</b><span>${detail}</span></div>
+      <fieldset class="share-thresholds"><legend>${text("Employer escalation thresholds","Umbrales de escalamiento del empleador")}</legend><label>${text("Elevated","Elevado")}<input type="number" min="1" max="94" step="1" data-threshold="elevated" value="${elevatedThreshold}"><span>%</span></label><label>${text("Critical","Crítico")}<input type="number" min="${elevatedThreshold+1}" max="100" step="1" data-threshold="critical" value="${criticalThreshold}"><span>%</span></label></fieldset>
       <div class="share-capacity-grid">${capacityKeys.map(key => `<div class="share-capacity-field"><label for="cap-${key}">${labels[key]}</label><div><input id="cap-${key}" data-capacity-key="${key}" type="number" min="0" step="100" inputmode="numeric" value="${capacities[key] ? Math.round(toDisplay(capacities[key])) : ""}" placeholder="${text("Enter WLL","Ingrese WLL")}"><span>${unit()}</span></div></div>`).join("")}</div>
       <div class="share-tool-actions"><button class="btn btn-dark" type="button" data-apply-capacity>${text("Apply tagged capacities","Aplicar capacidades de etiqueta")}</button><button class="btn utility" type="button" data-clear-capacity>${text("Clear","Borrar")}</button></div>
-      <div class="share-check-list">${data.checks.map(check => `<div class="share-capacity-check ${check.status}"><b>${labels[check.key]}</b><strong>${check.status === "missing" ? text("WLL needed","Falta WLL") : check.status === "overloaded" ? text("OVERLOADED","SOBRECARGADO") : text("Within entered WLL","Dentro del WLL ingresado")}</strong><span>${text("Demand","Demanda")}: ${force(check.demand)}${check.wll ? ` · WLL: ${force(check.wll)} · ${text("Use","Uso")}: ${Math.round(check.utilization*100)}%` : ""}</span></div>`).join("")}</div>`;
+      <div class="share-check-list">${data.checks.map(check => { const [label,note]=rowStatus(check); return `<div class="share-capacity-check ${check.status}" aria-live="polite"><b>${labels[check.key]}</b><strong>${label}</strong><span>${text("Demand","Demanda")}: ${preciseForce(check.demand,check.wll)}${check.wll ? ` · WLL: ${preciseForce(check.wll,check.demand)} · ${text("Use","Uso")}: ${(check.utilization*100).toFixed(1).replace(/\.0$/,"")}%` : ""}${note?`<em>${note}</em>`:""}</span></div>`}).join("")}</div>`;
   }
 
   const assumptionLabels = () => ({
@@ -207,6 +228,16 @@
     if (event.target.matches("[data-evidence],[data-evidence-inspection]")) {
       draftStale = false;
       appliedFingerprint = core.calculationFingerprint(input());
+      render();
+    }
+    if (event.target.matches("[data-threshold]")) {
+      const value = Number(event.target.value);
+      if (event.target.dataset.threshold === "elevated") {
+        elevatedThreshold = Math.max(1, Math.min(94, value || 80));
+        if (criticalThreshold <= elevatedThreshold) criticalThreshold = Math.min(100, elevatedThreshold + 1);
+      } else {
+        criticalThreshold = Math.max(elevatedThreshold + 1, Math.min(100, value || 95));
+      }
       render();
     }
   });

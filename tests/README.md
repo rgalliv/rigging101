@@ -2,7 +2,7 @@
 
 `button-test.js` drives a real Chromium browser (Playwright) through **every
 button on every tab/page** of `index.html` and asserts the expected state
-change for each one — 142 checks covering:
+change for each one — 143 checks covering:
 
 - Nav & hero (Start course, Instructor mode, Open reference tools, Back-to-course bar)
 - Rigging library — all 10 configuration tiles (visible only in explorer mode, by design)
@@ -18,17 +18,17 @@ change for each one — 142 checks covering:
 - Scenario lab — all 6 evidence hotspots + list buttons, unlock, all 4 decisions
 - Load-share lab — elevation/plan views; Model, Capacity, Evidence, and Explain tabs;
   entered-WLL overload checks; calculation freshness; assumptions ledger; copied analysis;
-  weight Apply, kg unit toggle, CG slider, 3 hook-height buttons, all 6 presets,
+  weight Apply, kg unit toggle, CG slider, 5 hook-height buttons, all 7 presets,
   play/pause animation, 3 answer buttons, Check decision, Reset model
 - Final knowledge check — miss/restart cycle, full 8-question 100% mastery,
   completion card, Copy progress summary (clipboard + toast)
 - Resource cards — all 6 learner tools open the right tool/dialog
-- Controlled Instructor route — public links absent, passcode gate, 5 tabs,
+- Controlled Instructor route — top-navigation agenda entry, passcode gate, 5 tabs,
   8 agenda checkboxes + reset, 6 reveal-lens toggles, 6 launch-stage buttons,
   rubric fields + Clear rubric, Print guide, Close
 - Glossary dialog open/close
 - Verified CCOS/CraneQualified contact footer, exact controlling-employer language,
-  and no learner-runtime local/session storage APIs
+  and the versioned, retention-controlled local learner record
 - Clear progress (run last), and zero JS console/page errors across the whole run
 
 Answer keys are **not** stored in the repo — the script derives correct choices
@@ -77,7 +77,7 @@ least one button was flagged. This scan also verifies that zoom controls at
 
 Guards the bilingual (English / Latin American Spanish) experience — 31 checks:
 
-- Language toggle, `<html lang>`, document title, and session-only reset across reload
+- Language toggle, `<html lang>`, document title, and device-record persistence across reload
 - Interactive flows while the UI is in Spanish: course decision, scenario
   unlock + decision, quiz answer, the absence of retired technical layers,
   kg toggle, visual-lab controls, progress-summary export — answer keys derived from the embedded
@@ -100,6 +100,20 @@ Exit code `0` only when all checks pass. On its first run this suite caught a
 missing translation on the rigging-library strip ("Change the assembly") and a
 stale tool-mode-bar title that kept its previous language after a toggle —
 both fixed.
+
+## Remediation and visual suites
+
+`remediation-test.js` checks the August 2026 fix list: one-H1 structure,
+four-card readiness, complete image alternatives in both languages, Spanish
+mobile overflow, required-learning retry gates, the near-30-degree case,
+configurable WLL thresholds, inline glossary help, label contrast, and browser
+errors. `visual-capture.js` captures the course, assessment, and load-share lab
+at 1366×768, 1024×768, 768×1024, and 375×667 for a human visual pass.
+
+```bash
+node tests/remediation-test.js
+node tests/visual-capture.js
+```
 
 ## Competency UX suite (`competency-ux-test.js`)
 
