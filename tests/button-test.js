@@ -486,6 +486,7 @@ async function check(name, fn) {
   });
   await check('inspection, hitch, bend, path, and tag visual controls respond', async () => {
     await page.click('.resource-grid [data-open-tool="visual"]'); await page.waitForTimeout(150);
+    await page.waitForFunction(() => [...document.querySelectorAll('#compareFrame .inspection-photo')].every(image => image.complete && image.naturalWidth > 0), null, { timeout: 5000 });
     await page.$eval('#compareRange', input => { input.value = '70'; input.dispatchEvent(new Event('input', { bubbles: true })); });
     const compare = await page.$eval('#compareFrame', frame => frame.style.getPropertyValue('--compare') === '70%');
     const images = await page.$$eval('#compareFrame .inspection-photo', items => items.length === 2 && items.every(image => image.complete && image.naturalWidth > 0));
