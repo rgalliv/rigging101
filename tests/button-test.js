@@ -54,18 +54,21 @@ async function check(name, fn) {
 
   // ---------- 0. Baseline ----------
   await check('page loads with no JS errors', async () => consoleErrors.length === 0 || (() => { throw new Error(consoleErrors.join(' | ')) })());
-  await check('public footer carries the controlling-employer determination', async () =>
-    (await txt('.employer-determination')) === 'All qualification determinations rest with the controlling employer per 29 CFR 1926 Subpart CC.');
+  await check('public footer carries the task-specific employer and controlling-entity boundary', async () =>
+    (await txt('.footer-qualification')) === 'The employer determines whether a person is qualified for the specific rigging task. The controlling entity has the ground-condition duties assigned by 29 CFR 1926.1402 when applicable.');
   await check('footer exposes verified CCOS and CraneQualified contact links', async () =>
     await page.evaluate(() => {
       const logo = document.querySelector('.footer-school-logo img');
+      const cqLogo = document.querySelector('.footer-cq-logo img');
       return Boolean(
         logo?.complete && logo.naturalWidth > 0 &&
+        cqLogo?.complete && cqLogo.naturalWidth > 0 &&
         document.querySelector('footer a[href="tel:+13034771044"]') &&
         document.querySelector('footer a[href="mailto:office@ccoschool.us"]') &&
         document.querySelector('footer a[href="https://ccoschool.us/"]') &&
         document.querySelector('footer a[href="https://www.cranequalified.com/"]') &&
-        document.querySelector('footer')?.textContent?.includes('4020 Kodiak Court')
+        document.querySelector('footer')?.textContent?.includes('4020 Kodiak Court') &&
+        document.querySelector('footer')?.textContent?.includes('Fax: (303) 477-1078')
       );
     }));
   await check('learner record stays optional on anonymous load and avoids sessionStorage', async () => {
