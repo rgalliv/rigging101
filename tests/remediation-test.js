@@ -81,6 +81,38 @@ async function check(name, run) {
     return true;
   });
 
+  await check('Spanish detail controls and instructor workspace do not clip text', async () => {
+    if (!(await page.getAttribute('html', 'lang')).startsWith('es')) await page.click('#langToggle');
+    const clippedText = () => page.evaluate(() => [...document.querySelectorAll('button, span, strong, p, li, td')]
+      .filter(element => element.childElementCount === 0 && element.textContent.trim())
+      .filter(element => { const rect=element.getBoundingClientRect(),style=getComputedStyle(element); return rect.width>0&&rect.height>0&&style.visibility!=='hidden'&&element.scrollWidth>element.clientWidth+2; })
+      .map(element => `${element.tagName.toLowerCase()}#${element.id || ''}.${typeof element.className === 'string' ? element.className.trim().replace(/\s+/g,'.') : ''}:${element.scrollWidth}-${element.clientWidth}`));
+    await page.click('[data-open-tool="explorer"]');
+    await page.click('.part[data-component]');
+    const toolClipping = await clippedText();
+    await page.click('#closeTool');
+    await page.locator('#instructorAgendaNav').evaluate(button => button.click());
+    await page.fill('#instructorPasscode', 'Rigging101-Facilitator-2026');
+    await page.click('#instructorUnlock');
+    await page.waitForTimeout(120);
+    const expected = ['Programa de la sesión','Claves de enseñanza','Estaciones prácticas','Análisis posterior','Rúbrica práctica'];
+    const tabs = await page.locator('.instructor-tabs button').allTextContents();
+    if (!expected.every(label => tabs.includes(label))) throw new Error(`untranslated tabs: ${tabs.join(', ')}`);
+    for (const tab of ['agenda','cues','stations','debrief','rubric']) {
+      await page.click(`[data-instructor-tab="${tab}"]`);
+      const clipping = await clippedText();
+      if (clipping.length) throw new Error(`${tab}: ${clipping.slice(0,8).join(', ')}`);
+    }
+    const mobileRubricLabels = await page.locator('.rubric-table tbody tr:first-child .rubric-choice').evaluateAll(elements => elements.map(element => getComputedStyle(element, ':before').content));
+    if (!mobileRubricLabels.some(label => label.includes('Autónomo')) || !mobileRubricLabels.some(label => label.includes('Parada por seguridad'))) throw new Error(`rubric labels: ${mobileRubricLabels.join(', ')}`);
+    const workspaceText = await page.locator('#instructorDialog').innerText();
+    await page.click('#instructorClose');
+    if (toolClipping.length) throw new Error(`explorer: ${toolClipping.slice(0,8).join(', ')}`);
+    const normalizedWorkspace = workspaceText.toLocaleLowerCase('es');
+    if (!normalizedWorkspace.includes('registro práctico observado') || !normalizedWorkspace.includes('registro de capacitación')) throw new Error('localized rubric copy missing');
+    return true;
+  });
+
   await check('a second consecutive assessment miss requires related learning before retry', async () => {
     if ((await page.getAttribute('html', 'lang')) !== 'en') await page.click('#langToggle');
     await page.click('[data-open-tool="mastery"]');
