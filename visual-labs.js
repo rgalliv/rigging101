@@ -2,7 +2,7 @@
   "use strict";
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  const es = () => document.documentElement.lang === "es";
+  const es = () => document.documentElement.lang.startsWith("es");
   const t = (en, spanish) => es() ? spanish : en;
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 

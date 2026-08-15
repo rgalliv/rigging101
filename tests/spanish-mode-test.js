@@ -105,7 +105,7 @@ async function check(name, fn) {
       document.querySelector('#journeyStepper').getAttribute('aria-label'),
       document.querySelector('.brand').getAttribute('aria-label')
     ]);
-    return lang === 'es' && title.includes('Laboratorio') && (await txt('#langToggle')) === 'English' &&
+    return lang === 'es-419' && title.includes('Laboratorio') && (await txt('#langToggle')) === 'English' &&
       navigationLabels.join('|') === 'Navegación principal|Áreas del participante|Seis pasos del curso|Visitar Crane Qualified';
   });
   await check('hero and course render in Spanish', async () =>
@@ -208,7 +208,7 @@ async function check(name, fn) {
   await check('reload preserves Spanish in the optional device record', async () => {
     await page.reload({ waitUntil: 'load' });
     await page.waitForTimeout(500);
-    return (await page.evaluate(() => document.documentElement.lang)) === 'es' &&
+    return (await page.evaluate(() => document.documentElement.lang)) === 'es-419' &&
       (await txt('#langToggle')) === 'English' &&
       await page.evaluate(() => Boolean(JSON.parse(localStorage.getItem('cq.rig101.recordEnvelope') || 'null')?.schemaVersion));
   });
@@ -218,7 +218,7 @@ async function check(name, fn) {
     const english = (await page.evaluate(() => document.documentElement.lang)) === 'en';
     await page.click('#langToggle');
     await page.waitForTimeout(300);
-    const spanish = (await page.evaluate(() => document.documentElement.lang)) === 'es';
+    const spanish = (await page.evaluate(() => document.documentElement.lang)) === 'es-419';
     await page.click('#langToggle');
     await page.waitForTimeout(300);
     return english && spanish && (await page.evaluate(() => document.documentElement.lang)) === 'en' &&
@@ -305,7 +305,7 @@ async function check(name, fn) {
     const es = await txt('#journeyFeedback');
     await flip();
     const enBack = await txt('#journeyFeedback');
-    await page.click('#journeyCheck'); // "Try again" resets the miss state
+    await page.click('#journeyRetry'); // the separate control clears the miss state
     return en.length > 20 && es.length > 20 && en !== es && enBack === en;
   });
 

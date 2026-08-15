@@ -16,8 +16,9 @@
   let elevatedThreshold = 80;
   let criticalThreshold = 95;
 
-  const text = (en, es) => document.documentElement.lang === "es" ? es : en;
-  const number = value => Math.round(value).toLocaleString(document.documentElement.lang === "es" ? "es-MX" : "en-US");
+  const isSpanish = () => document.documentElement.lang.startsWith("es");
+  const text = (en, es) => isSpanish() ? es : en;
+  const number = value => Math.round(value).toLocaleString(isSpanish() ? "es-MX" : "en-US");
   const isKg = () => document.getElementById("unitToggle")?.getAttribute("aria-pressed") === "true";
   const toDisplay = pounds => isKg() ? pounds * 0.45359237 : pounds;
   const fromDisplay = value => isKg() ? value / 0.45359237 : value;
@@ -26,7 +27,7 @@
     const converted = toDisplay(pounds);
     const nearBoundary = Number.isFinite(comparison) && Math.abs(pounds - comparison) < 1;
     const value = nearBoundary
-      ? converted.toLocaleString(document.documentElement.lang === "es" ? "es-MX" : "en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+      ? converted.toLocaleString(isSpanish() ? "es-MX" : "en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
       : number(converted);
     return `${value} ${isKg() ? "kg" : "lb"}`;
   };

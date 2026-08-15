@@ -120,20 +120,20 @@ async function check(name, fn) {
       return (await txt('#journeyStepLabel')) === `Step ${i + 1} of 6`;
     });
   }
-  // back to step 1, test wrong answer then "Try again", then master all 6
+  // back to step 1, test wrong answer then the separate Clear answer control, then master all 6
   await page.click('#journeyStepper button[data-journey-index="0"]'); await page.waitForTimeout(120);
-  await check('journey wrong option -> "Check decision" gives miss feedback + Try again', async () => {
+  await check('journey wrong option keeps Check stable and reveals Clear answer', async () => {
     const wrong = (ANSWERS['RIG101_d1'] + 1) % 4;
     await page.click(`#journeyOptions button[data-journey-choice="${wrong}"]`);
     await page.click('#journeyCheck');
     await page.waitForTimeout(120);
     const fb = await page.getAttribute('#journeyFeedback', 'class');
     const label = await txt('#journeyCheck');
-    return /bad/.test(fb) && /Try again/i.test(label);
+    return /bad/.test(fb) && label === 'Check decision' && await page.locator('#journeyCheck').isDisabled() && await page.locator('#journeyRetry').isVisible();
   });
-  await check('journey "Try again" resets the step', async () => {
-    await page.click('#journeyCheck'); await page.waitForTimeout(120);
-    return (await txt('#journeyCheck')) === 'Check decision';
+  await check('journey "Clear answer" resets only the answer', async () => {
+    await page.click('#journeyRetry'); await page.waitForTimeout(120);
+    return (await txt('#journeyCheck')) === 'Check decision' && !(await page.locator('#journeyRetry').isVisible());
   });
   for (let i = 0; i < 6; i++) {
     const id = `RIG101_d${i + 1}`;

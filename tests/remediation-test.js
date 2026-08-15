@@ -7,6 +7,8 @@ const salt = (source.match(/const SALT="([^"]+)"/) || [])[1];
 const fnv = value => { let hash = 0x811c9dc5; for (let i = 0; i < value.length; i++) { hash ^= value.charCodeAt(i); hash = Math.imul(hash, 0x01000193) >>> 0; } return hash.toString(16).padStart(8, '0'); };
 const q1Hash = (source.match(/id:"RIG101_q1".*?hash:"([a-f0-9]{8})"/) || [])[1];
 const q1Answer = [0,1,2,3].find(index => fnv(`${salt}:RIG101_q1:${index}`) === q1Hash);
+const d1Hash = (source.match(/id:"RIG101_d1".*?hash:"([a-f0-9]{8})"/) || [])[1];
+const d1Answer = [0,1,2,3].find(index => fnv(`${salt}:RIG101_d1:${index}`) === d1Hash);
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8321/index.html';
 const EXEC = process.env.CHROMIUM_PATH;
@@ -18,7 +20,8 @@ async function check(name, run) {
 
 (async () => {
   const browser = await chromium.launch({ headless: true, executablePath: EXEC || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(BASE, { waitUntil: 'load' });
@@ -44,7 +47,7 @@ async function check(name, run) {
     (await page.locator('#retentionPeriod option').count()) === 4);
 
   await check('all rendered images have an alt attribute in English and Spanish', async () => {
-    for (const language of ['en', 'es']) {
+    for (const language of ['en', 'es-419']) {
       const current = await page.getAttribute('html', 'lang');
       if (current !== language) await page.click('#langToggle');
       for (const tool of ['visual','explorer','scenario','share','mastery']) {
@@ -52,7 +55,7 @@ async function check(name, run) {
         if (await page.locator('img:not([alt])').count()) return false;
         await page.click('#closeTool');
       }
-      if (language === 'es') {
+      if (language === 'es-419') {
         await page.click('#navLearn');
         await page.click('.journey-step[data-journey-index="3"]');
         const hardwareAlt = await page.getAttribute('#journeyImage', 'alt');
@@ -63,7 +66,7 @@ async function check(name, run) {
   });
 
   await check('Spanish mobile layout has no page-level horizontal overflow', async () => {
-    if ((await page.getAttribute('html', 'lang')) !== 'es') await page.click('#langToggle');
+    if (!(await page.getAttribute('html', 'lang')).startsWith('es')) await page.click('#langToggle');
     for (const tool of ['visual','explorer','scenario','share','mastery']) {
       await page.locator(`[data-tool-tab="${tool}"]`).evaluate(button => button.click()); await page.waitForTimeout(80);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -178,6 +181,68 @@ async function check(name, run) {
       if (undersized.length) throw new Error(`${tool}: ${undersized.slice(0,8).join(', ')}`);
     }
     return true;
+  });
+
+  await check('retry preserves confidence and uses a separate clear control', async () => {
+    await page.evaluate(() => localStorage.clear());
+    await page.waitForTimeout(500);
+    if ((await page.getAttribute('html', 'lang')) !== 'en') await page.click('#langToggle');
+    await page.click('#navLearn');
+    const wrong = (d1Answer + 1) % 4;
+    await page.click('#journeyConfidence [data-confidence="high"]');
+    await page.click(`#journeyOptions [data-journey-choice="${wrong}"]`);
+    await page.click('#journeyCheck');
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('cq.rig101.recordEnvelope')).data.confidenceEvents);
+    const immediateCount = await page.textContent('#confidenceErrorStatus');
+    const stableCheck = (await page.textContent('#journeyCheck')).trim() === 'Check decision' && await page.locator('#journeyCheck').isDisabled();
+    const clearVisible = await page.locator('#journeyRetry').isVisible();
+    await page.click('#journeyRetry');
+    const event = stored.at(-1);
+    return event.confidence === 'high' && event.correct === false && immediateCount.trim() === '1' && stableCheck && clearVisible &&
+      await page.getAttribute('#journeyConfidence [data-confidence="high"]', 'aria-pressed') === 'true' &&
+      (await page.locator('#journeyOptions .selected').count()) === 0;
+  });
+
+  await check('untouched readiness is neutral and progress definitions are explained', async () => {
+    await page.evaluate(() => localStorage.clear());
+    await page.waitForTimeout(500);
+    const labels = await page.locator('#competencyList .competency-row span').allTextContents();
+    return labels.every(label => label.trim() === 'Not started') &&
+      (await page.locator('#competencyList .not-started').count()) === 6 &&
+      (await page.textContent('.hero-progress-explainer')).includes('Explored tracks material opened') &&
+      (await page.textContent('.readiness-shell > div:first-child > p')).includes('confident wrong answer');
+  });
+
+  await check('clearing browser storage resets live state and cannot be resurrected', async () => {
+    await page.click(`#journeyOptions [data-journey-choice="${d1Answer}"]`);
+    await page.click('#journeyCheck');
+    if ((await page.textContent('#journeyProgressText')).trim() !== '1 / 6') return false;
+    await page.evaluate(() => localStorage.clear());
+    await page.waitForTimeout(650);
+    const liveReset = (await page.textContent('#journeyProgressText')).trim() === '0 / 6' &&
+      (await page.textContent('#heroSessionProgress')).trim() === '0% EXPLORED';
+    await page.reload({ waitUntil: 'load' });
+    return liveReset && !(await page.evaluate(() => localStorage.getItem('cq.rig101.recordEnvelope'))) &&
+      (await page.textContent('#journeyProgressText')).trim() === '0 / 6';
+  });
+
+  await check('storage clear in one tab resets another tab', async () => {
+    await page.click(`#journeyOptions [data-journey-choice="${d1Answer}"]`);
+    await page.click('#journeyCheck');
+    const other = await page.context().newPage();
+    await other.goto(BASE, { waitUntil: 'load' });
+    await other.evaluate(() => localStorage.clear());
+    await page.waitForTimeout(300);
+    const reset = (await page.textContent('#journeyProgressText')).trim() === '0 / 6';
+    await other.close();
+    return reset && !(await page.evaluate(() => localStorage.getItem('cq.rig101.recordEnvelope')));
+  });
+
+  await check('tool names match their dispatch cards', async () => {
+    const expected = ['Field recognition lab','Components & inspection','Pre-lift scenario','Load-share lab','Final knowledge check'];
+    const tabs = await page.locator('#toolTabs .tool-tab').allTextContents();
+    const cards = await page.locator('.resource-card strong').allTextContents();
+    return expected.every(name => tabs.includes(name) && cards.includes(name));
   });
 
   await check('delete removes the device record without reload recreation', async () => {
