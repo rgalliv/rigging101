@@ -4,7 +4,10 @@ The optional device record uses local storage key `cq.rig101.recordEnvelope`.
 It is a versioned JSON envelope with `schemaVersion`, `contentVersion`,
 `savedAt`, `expiresAt`, `dataClass`, `storage`, and `data`. The learner chooses
 30, 90, or 365 days of retention, or session-only storage. Delete removes the
-envelope immediately.
+envelope immediately and suppresses unload-time recreation. Passive timing and
+an untouched instructor agenda do not create a record for an anonymous visitor;
+the envelope begins only after an explicit learner action creates progress or a
+preference.
 
 The exported JSON contains:
 
@@ -20,3 +23,7 @@ The exported JSON contains:
 
 This application record documents knowledge demonstrated in the learning lab.
 It is not a qualification record or lift authorization.
+
+The copied progress summary ends with a local checksum intended only to detect
+copying errors. Because it is generated in the browser, it is not a digital
+signature, proof of authenticity, or employer verification.

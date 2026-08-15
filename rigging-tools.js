@@ -125,10 +125,11 @@
     topHardwareWll: text("Top hardware — marked WLL","Herraje superior — WLL marcado")
   });
 
-  function statusCopy(status) {
+  function statusCopy(status, thresholds = { critical: criticalThreshold / 100 }) {
+    const criticalPercent = Math.round(Number(thresholds.critical || criticalThreshold / 100) * 100);
     return ({
       blocked: [text("STOP — entered WLL exceeded","ALTO — se excede el WLL ingresado"), text("At least one entered component rating is below calculated demand.","Al menos una capacidad ingresada está por debajo de la demanda calculada.")],
-      critical_capacity: [text("CRITICAL — escalate","CRÍTICO — escale"), text("At least one component is at 95% or more of its entered WLL. Little margin remains; do not proceed on this comparison.","Al menos un componente está al 95% o más de su WLL ingresado. Queda poco margen; no proceda con esta comparación.")],
+      critical_capacity: [text("CRITICAL — escalate","CRÍTICO — escale"), text(`At least one component is at ${criticalPercent}% or more of its entered WLL. Little margin remains; do not proceed on this comparison.`,`Al menos un componente está al ${criticalPercent}% o más de su WLL ingresado. Queda poco margen; no proceda con esta comparación.`)],
       qualified_analysis_required: [text("Qualified analysis required","Se requiere análisis de una persona calificada"), text("A sling angle is below 30°. Do not use this training model as field approval.","Un ángulo de eslinga es menor de 30°. No use este modelo de práctica como aprobación de campo.")],
       verified_information_required: [text("Verify load information","Verifique la información de la carga"), text("Weight or center of gravity is still estimated.","El peso o el centro de gravedad todavía es estimado.")],
       capacity_required: [text("Enter identified capacities","Ingrese las capacidades identificadas"), text("Use the sling tag and marked hardware WLL for this exact configuration.","Use la etiqueta de la eslinga y el WLL marcado del herraje para esta configuración exacta.")],
@@ -141,7 +142,7 @@
     const panel = lab.querySelector("#sharePanelCapacity");
     if (!panel) return;
     const labels = capacityLabels();
-    const [title, detail] = statusCopy(data.status);
+    const [title, detail] = statusCopy(data.status, data.thresholds);
     const rowStatus = check => {
       const pct = (check.utilization * 100).toFixed(1).replace(/\.0$/, "");
       if (check.status === "missing") return [text("WLL needed","Falta WLL"), ""];
@@ -197,7 +198,7 @@
   }
 
   function summary(data) {
-    const [status] = statusCopy(data.status);
+    const [status] = statusCopy(data.status, data.thresholds);
     return [text("RIGGING 101 — LOAD SHARE ANALYSIS","RIGGING 101 — ANÁLISIS DE REPARTO DE CARGA"),`${text("Status","Estado")}: ${status}`,`${text("Load","Carga")}: ${force(data.totalLoad)}`,`CG: ${Math.round(data.cgFromLeft/data.span*100)}%`,`${text("Left demand","Demanda izquierda")}: ${force(data.legs.left.tension)} · ${data.geometry.leftAngle.toFixed(1)}°`,`${text("Right demand","Demanda derecha")}: ${force(data.legs.right.tension)} · ${data.geometry.rightAngle.toFixed(1)}°`,`${text("Governing leg","Ramal gobernante")}: ${data.governingLeg}`,`${text("Warnings","Advertencias")}: ${data.warnings.map(warningText).join(" | ") || text("None from entered inputs","Ninguna según los datos ingresados")}`,text("Training support only — not lift authorization.","Solo apoyo de capacitación — no es autorización de izaje.")].join("\n");
   }
 

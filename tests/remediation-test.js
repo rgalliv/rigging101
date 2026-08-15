@@ -25,8 +25,19 @@ async function check(name, run) {
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'load' });
 
+  await check('anonymous startup does not create a device record', async () =>
+    !(await page.evaluate(() => localStorage.getItem('cq.rig101.recordEnvelope'))));
+
   await check('document has one H1 and four readiness cards', async () =>
     (await page.locator('h1').count()) === 1 && (await page.locator('.mastery-status .status').count()) === 4);
+
+  await check('tool panels do not create nested complementary landmarks', async () => {
+    for (const tool of ['visual','explorer','scenario','share','mastery']) {
+      await page.locator(`[data-tool-tab="${tool}"]`).evaluate(button => button.click());
+      if (await page.locator('main aside').count()) return false;
+    }
+    return true;
+  });
 
   await check('learner record exposes identity, retention, export, and deletion controls', async () =>
     ['#learnerName','#learnerId','#retentionPeriod','#exportRecord','#deleteRecord'].every(selector => page.locator(selector)) &&
@@ -41,6 +52,12 @@ async function check(name, run) {
         if (await page.locator('img:not([alt])').count()) return false;
         await page.click('#closeTool');
       }
+      if (language === 'es') {
+        await page.click('#navLearn');
+        await page.click('.journey-step[data-journey-index="3"]');
+        const hardwareAlt = await page.getAttribute('#journeyImage', 'alt');
+        if (!hardwareAlt.includes('Grillete') || hardwareAlt.includes('Gancho')) return false;
+      }
     }
     return true;
   });
@@ -48,7 +65,7 @@ async function check(name, run) {
   await check('Spanish mobile layout has no page-level horizontal overflow', async () => {
     if ((await page.getAttribute('html', 'lang')) !== 'es') await page.click('#langToggle');
     for (const tool of ['visual','explorer','scenario','share','mastery']) {
-      await page.click(`[data-open-tool="${tool}"]`); await page.waitForTimeout(80);
+      await page.locator(`[data-tool-tab="${tool}"]`).evaluate(button => button.click()); await page.waitForTimeout(80);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       if (overflow > 1) {
         const offenders = await page.evaluate(() => [...document.querySelectorAll('body *')]
@@ -71,13 +88,16 @@ async function check(name, run) {
       if (attempt === 0) await page.click('#checkAnswer');
     }
     const gated = await page.locator('#checkAnswer').isDisabled();
+    await page.reload({ waitUntil: 'load' });
+    await page.click('[data-open-tool="mastery"]');
+    const gateSurvivedReload = await page.locator('#checkAnswer').isDisabled();
     const route = page.locator('#quizFeedback [data-related-learning]');
     const routeShown = await route.count() === 1;
     await route.click();
     await page.click('.resource-grid [data-open-tool="mastery"]');
     const released = !(await page.locator('#checkAnswer').isDisabled());
     await page.click('#closeTool');
-    return gated && routeShown && released;
+    return gated && gateSurvivedReload && routeShown && released;
   });
 
   await check('near-30-degree scenario exposes angle bands, L/H, and LAF', async () => {
@@ -90,14 +110,33 @@ async function check(name, run) {
   });
 
   await check('working-load escalation thresholds are configurable', async () => {
+    await page.click('#resetShare');
     await page.click('[data-share-panel="capacity"]');
     const thresholdInputs = await page.locator('[data-threshold]').count();
+    await page.fill('[data-threshold="critical"]', '90');
+    await page.locator('[data-threshold="critical"]').dispatchEvent('change');
+    for (const [key,value] of [['leftSlingWll','6000'],['rightSlingWll','20000'],['leftHardwareWll','20000'],['rightHardwareWll','20000'],['topHardwareWll','20000']]) await page.fill(`[data-capacity-key="${key}"]`, value);
+    await page.click('[data-apply-capacity]');
+    await page.click('[data-share-panel="assumptions"]');
+    await page.check('[data-evidence-inspection]');
+    await page.click('[data-share-panel="capacity"]');
+    const statusCopy = await page.locator('.share-system-status').innerText();
     return thresholdInputs === 2 &&
       (await page.getAttribute('[data-threshold="elevated"]', 'value')) === '80' &&
-      (await page.getAttribute('[data-threshold="critical"]', 'value')) === '95';
+      statusCopy.includes('90% or more') && !statusCopy.includes('95% or more');
+  });
+
+  await check('every public instructor entry uses the passcode gate', async () => {
+    await page.click('#closeTool');
+    await page.locator('#instructorAgendaNav').evaluate(button => button.click());
+    const navGate = await page.locator('#instructorGate').evaluate(dialog => dialog.open);
+    const navWorkspace = await page.locator('#instructorDialog').evaluate(dialog => dialog.open);
+    await page.locator('#instructorGateForm button[value="cancel"]').click();
+    return navGate && !navWorkspace && !(await page.locator('#instructorGate').evaluate(dialog => dialog.open));
   });
 
   await check('glossary links and print control are available at calculation terms', async () => {
+    await page.click('[data-open-tool="share"]');
     await page.click('[data-share-panel="model"]');
     const links = await page.locator('[data-glossary-entry]').count();
     await page.locator('[data-glossary-entry="glossary-laf"]').first().click();
@@ -128,6 +167,27 @@ async function check(name, run) {
       if (failures.length) throw new Error(failures.join(', '));
       return true;
     });
+  });
+
+  await check('mobile interactive targets meet 44 CSS pixels', async () => {
+    for (const tool of ['visual','explorer','scenario','share','mastery']) {
+      await page.click(`[data-open-tool="${tool}"]`); await page.waitForTimeout(80);
+      const undersized = await page.evaluate(() => [...document.querySelectorAll('button,input,select,a[href]')]
+        .filter(element => { const rect=element.getBoundingClientRect(),style=getComputedStyle(element); return rect.width>0&&rect.height>0&&style.visibility!=='hidden'&&(rect.width<44||rect.height<44); })
+        .map(element => `${element.tagName.toLowerCase()}#${element.id || ''}:${Math.round(element.getBoundingClientRect().width)}x${Math.round(element.getBoundingClientRect().height)}`));
+      if (undersized.length) throw new Error(`${tool}: ${undersized.slice(0,8).join(', ')}`);
+    }
+    return true;
+  });
+
+  await check('delete removes the device record without reload recreation', async () => {
+    await page.locator('[data-tool-tab="mastery"]').evaluate(button => button.click());
+    await page.fill('#learnerName', 'Delete Test');
+    await page.locator('#learnerName').dispatchEvent('change');
+    if (!(await page.evaluate(() => localStorage.getItem('cq.rig101.recordEnvelope')))) return false;
+    await page.click('#deleteRecord');
+    await page.waitForLoadState('load'); await page.waitForTimeout(150);
+    return !(await page.evaluate(() => localStorage.getItem('cq.rig101.recordEnvelope')));
   });
 
   await check('no JavaScript errors occur in remediation checks', () => errors.length === 0);

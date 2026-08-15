@@ -32,6 +32,25 @@ const CONTEXTS = [
   const page = await ctx.newPage();
   await page.addInitScript(() => {
     window.print = () => { window.__printed = (window.__printed || 0) + 1; window.dispatchEvent(new Event('afterprint')); };
+    window.__closeDialogs = () => {
+      const i = document.getElementById('instructorDialog'), g = document.getElementById('glossaryDialog'), gate = document.getElementById('instructorGate');
+      i?.open && i.close(); g?.open && g.close(); gate?.open && gate.close();
+    };
+    window.__openTool = name => {
+      window.__closeDialogs();
+      const control = document.querySelector(`[data-tool-tab="${name}"]`) || document.querySelector(`[data-open-tool="${name}"]`);
+      if (control) control.click();
+    };
+    window.__normalizeExplorer = () => {
+      const tile = document.querySelector('#configTiles .tile[data-config="bridle2"]');
+      if (tile && tile.getAttribute('aria-selected') !== 'true') tile.click();
+      const all = document.querySelector('#focusControls [data-focus="all"]');
+      if (all && !all.classList.contains('active')) all.click();
+      const uv = document.getElementById('unviewedOnly');
+      if (uv && uv.getAttribute('aria-pressed') === 'true') uv.click();
+      const s = document.getElementById('search');
+      if (s && s.value) { s.value = ''; s.dispatchEvent(new Event('input', { bubbles: true })); }
+    };
   });
   page.on('pageerror', e => console.log('PAGEERROR: ' + e.message));
   await page.goto(BASE, { waitUntil: 'networkidle' });
@@ -40,8 +59,8 @@ const CONTEXTS = [
   await page.waitForTimeout(600);
   await page.evaluate(() => {
     window.__closeDialogs = () => {
-      const i = document.getElementById('instructorDialog'), g = document.getElementById('glossaryDialog');
-      i.open && i.close(); g.open && g.close();
+      const i = document.getElementById('instructorDialog'), g = document.getElementById('glossaryDialog'), gate = document.getElementById('instructorGate');
+      i.open && i.close(); g.open && g.close(); gate.open && gate.close();
     };
     window.__openTool = name => {
       window.__closeDialogs();
@@ -98,6 +117,7 @@ const CONTEXTS = [
       const el = handle.asElement();
       if (!el) { skipped.push(`${c.name} :: "${b.label}" (not found)`); continue; }
       const state = await el.evaluate(x => ({
+        id: x.id,
         disabled: x.disabled,
         hidden: !x.offsetParent && getComputedStyle(x).position !== 'fixed',
         activeTab: x.getAttribute('role') === 'tab' && x.getAttribute('aria-selected') === 'true',
@@ -105,6 +125,7 @@ const CONTEXTS = [
       }));
       if (state.disabled || state.hidden) { skipped.push(`${c.name} :: "${b.label}" (${state.disabled ? 'disabled' : 'hidden'})`); continue; }
       if (state.label !== b.label) { skipped.push(`${c.name} :: "${b.label}" (relabeled to "${state.label}")`); continue; }
+      if (state.id === 'applyShareWeight') { noop.push(`${c.name} :: "${b.label}" (unchanged input — designed no-op)`); continue; }
       if (state.activeTab) { noop.push(`${c.name} :: "${b.label}" (already-selected tab — designed no-op)`); continue; }
       await el.evaluate(x => x.scrollIntoView({ block: 'center', behavior: 'instant' }));
       await settle();

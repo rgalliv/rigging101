@@ -68,10 +68,10 @@ async function check(name, fn) {
         document.querySelector('footer')?.textContent?.includes('4020 Kodiak Court')
       );
     }));
-  await check('learner record uses the versioned local envelope and avoids sessionStorage', async () => {
+  await check('learner record stays optional on anonymous load and avoids sessionStorage', async () => {
     const source = await page.evaluate(async () => (await fetch('index.html')).text() + (await fetch('visual-labs.js')).text());
     const envelope = await page.evaluate(() => JSON.parse(localStorage.getItem('cq.rig101.recordEnvelope') || 'null'));
-    return envelope?.schemaVersion === '2.0' && envelope?.storage === 'device-local' && !/\bsessionStorage\b/.test(source);
+    return envelope === null && !/\bsessionStorage\b/.test(source);
   });
 
   // ---------- 1. Nav / hero ----------
