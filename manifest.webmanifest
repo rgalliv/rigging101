@@ -4,8 +4,8 @@
   "description": "See the lift, make field decisions, calibrate confidence, and separate knowledge from observed practical performance.",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0d1830",
-  "theme_color": "#0d1830",
+  "background_color": "#001b3f",
+  "theme_color": "#001b3f",
   "icons": [
     { "src": "assets/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "assets/brand/icon-512.png", "sizes": "512x512", "type": "image/png" }

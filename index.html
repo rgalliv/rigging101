@@ -3,22 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0d1830">
+  <meta name="theme-color" content="#001b3f">
   <title>Rigging 101 Field Learning Lab | Crane Qualified</title>
   <meta name="description" content="Explore ten rigging assemblies, calculate live sling tension, make six field decisions, and demonstrate scenario mastery.">
   <meta property="og:title" content="Rigging 101 Field Learning Lab | Crane Qualified">
   <meta property="og:description" content="Explore ten rigging assemblies, calculate live sling tension, make six field decisions, and demonstrate scenario mastery.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="assets/scenarios/hero-rigging-realistic.webp">
-  <link rel="icon" type="image/png" sizes="192x192" href="assets/brand/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
   <link rel="apple-touch-icon" href="assets/brand/icon-180.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="cq-design-tokens.css">
   <link rel="stylesheet" href="visual-labs.css">
   <link rel="stylesheet" href="rigging-tools.css">
   <style>
     :root{
-      --navy:#0d1830;--navy2:#09111f;--navy3:#172943;--gold:#c9a84c;--gold2:#e3c873;
-      --teal:#28a89b;--blue:#3a6fb0;--paper:#f3f6f9;--paper2:#e7ecf2;--white:#fff;
+      --navy:var(--cq-brand-navy);--navy2:#00132d;--navy3:#173554;--gold:#c9a84c;--gold2:#e3c873;
+      --teal:#28a89b;--blue:#356cae;--paper:#f3f6f9;--paper2:#e7ecf2;--white:#fff;
       --ink:#0d1830;--slate:#465366;--muted:#6f7d91;--line:#d6dde7;--danger:#c64e45;
       --warn:#d27c27;--shadow:0 24px 70px rgba(5,13,28,.17);--radius:22px;
       --font-body:"Segoe UI",Arial,sans-serif;--font-display:"Segoe UI",Arial,sans-serif;
@@ -120,11 +121,11 @@
   <div class="topbar"></div>
   <nav class="nav" aria-label="Primary navigation">
     <a class="brand" href="https://cranequalified.com" aria-label="Visit Crane Qualified">
-      <span class="brand-mark-frame"><img class="brand-mark" src="assets/brand/cranequalified-mark-transparent.png" alt=""></span>
-      <span class="brand-name">CRANE<br>QUALIFIED</span><span class="brand-tag">Field Learning Lab</span>
+      <img class="brand-logo" src="assets/brand/cranequalified-dark-background.svg" alt="CraneQualified" width="800" height="800">
+      <span class="brand-product"><b>RIGGING 101</b><small>FIELD LEARNING LAB</small></span>
     </a>
     <nav class="learner-nav" aria-label="Learner areas"><button id="navLearn" type="button">Learn</button><button id="navPractice" type="button">Practice</button><button id="navTools" type="button">Tools</button></nav>
-    <div class="nav-actions"><button class="btn btn-ghost" id="instructorAgendaNav" type="button">Instructor agenda</button><button class="btn btn-ghost" id="langToggle" type="button" aria-label="Cambiar idioma / Switch language">Español</button><button class="btn btn-gold" id="resumeNav" type="button">Start course <span aria-hidden="true">↓</span></button></div>
+    <div class="nav-actions"><span class="msc-endorsement"><small>Presented by</small><b>MSC SAFETY SOLUTIONS</b></span><button class="btn btn-ghost" id="instructorAgendaNav" type="button">Instructor agenda</button><button class="btn btn-ghost" id="langToggle" type="button" aria-label="Cambiar idioma / Switch language">Español</button><button class="btn btn-gold" id="resumeNav" type="button">Start course <span aria-hidden="true">↓</span></button></div>
   </nav>
 
   <section class="library" aria-label="Rigging assembly library">
@@ -135,11 +136,23 @@
     <div class="hero-shade"></div>
     <img class="hero-rig" src="assets/scenarios/hero-rigging-realistic.webp" alt="" width="1672" height="941" decoding="async" fetchpriority="high">
     <div class="hero-inner">
-      <div class="eyebrow">Rigging 101 · Field Learning Lab</div>
-      <h1>See the <span>load path.</span><br>Make the call.</h1>
-      <p class="hero-copy">Follow one clear six-step course from establishing the load through the trial lift. Make each field decision, learn why it controls the lift, then test your judgment. Instructors can open a four-hour run of show from the top navigation.</p>
-      <div class="hero-actions"><button class="btn btn-gold" id="heroGuided" type="button">Start the 6-step course</button><button class="btn btn-ghost" type="button" data-open-tool="explorer">Open reference tools</button></div>
-      <div class="hero-facts"><span class="fact"><i class="dot"></i><b>6</b> guided decisions</span><span class="fact"><i class="dot"></i><b>1</b> final knowledge check</span><span class="fact"><i class="dot"></i><b>Stop</b> conditions throughout</span></div>
+      <div class="hero-mission">
+        <div class="eyebrow">RIG101 · FIELD LEARNING SYSTEM</div>
+        <h1>YOU ARE THE <span>RIGGER.</span></h1>
+        <p class="hero-subline">Read the load. Build the path. Make the call.</p>
+        <p class="hero-copy">Follow one clear six-step course from establishing the load through the trial lift. Make each field decision, learn why it controls the lift, then test your judgment.</p>
+        <div class="hero-actions"><button class="btn btn-gold" id="heroGuided" type="button">Start the rigging mission</button><button class="btn btn-ghost" type="button" data-open-tool="explorer">Explore five labs</button></div>
+      </div>
+      <aside class="prelift-board" aria-label="Pre-lift training board">
+        <div class="prelift-head"><span>PRE-LIFT BOARD</span><i aria-hidden="true"></i></div>
+        <dl><div><dt>Training load</dt><dd>Pump skid</dd></div><div><dt>Provided weight</dt><dd>8,200 lb</dd></div><div><dt>Status</dt><dd class="prelift-status">Planning</dd></div><div><dt>Mode</dt><dd>Training</dd></div></dl>
+        <p>Make the next decision from the evidence provided.</p>
+      </aside>
+      <div class="hero-session">
+        <div><span>LOCAL SESSION</span><b id="heroSessionProgress">0% EXPLORED</b></div>
+        <div class="hero-session-track" role="progressbar" aria-label="Course progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="heroSessionBar"></i></div>
+        <span class="hero-session-note">Progress stays on this device</span>
+      </div>
     </div>
   </header>
 
@@ -713,7 +726,7 @@
     function renderLearnerJourney(){
       const d=deci(DECISIONS[journeyIndex]),meta=jmeta(JOURNEY_META[journeyIndex]),done=mastered.has(d.id);
       const nextOpen=DECISIONS.findIndex(item=>!mastered.has(item.id)),courseComplete=nextOpen<0;
-      $("#heroGuided").textContent=courseComplete?tr("Review the 6-step course","Repasar el curso de 6 pasos"):mastered.size?tr(`Resume at step ${nextOpen+1}`,`Continuar en el paso ${nextOpen+1}`):tr("Start the 6-step course","Comenzar el curso de 6 pasos");
+      $("#heroGuided").textContent=courseComplete?tr("Review the rigging mission","Repasar la misión de aparejos"):mastered.size?tr(`Resume at step ${nextOpen+1}`,`Continuar en el paso ${nextOpen+1}`):tr("Start the rigging mission","Comenzar la misión de aparejos");
       $("#resumeNav").innerHTML=(courseComplete?tr("Review course","Repasar curso"):mastered.size?tr(`Continue · Step ${nextOpen+1}`,`Continuar · Paso ${nextOpen+1}`):tr("Start course","Comenzar curso"))+' <span aria-hidden="true">↓</span>';
       $("#resumeLearning").textContent=courseComplete?tr("Review the 6-step course","Repasar el curso de 6 pasos"):mastered.size?tr(`Resume the 6-step course · Step ${nextOpen+1}`,`Continuar el curso de 6 pasos · Paso ${nextOpen+1}`):tr("Start the 6-step course","Comenzar el curso de 6 pasos");
       $("#journeyStepper").innerHTML=DECISIONS.map((raw,i)=>{const item=deci(raw);return `<button class="journey-step ${i===journeyIndex?"current":""} ${mastered.has(item.id)?"mastered":""}" type="button" data-journey-index="${i}" aria-current="${i===journeyIndex?"step":"false"}"><b>${mastered.has(item.id)?tr("✓ MASTERED","✓ DOMINADO"):tr(`STEP ${i+1}`,`PASO ${i+1}`)}</b>${esc(item.title)}</button>`}).join("");
@@ -853,7 +866,7 @@
       $("#readinessRecommendation").textContent=next?tr(`Recommended next challenge → ${next.d.title}`,`Siguiente desafío recomendado → ${next.d.title}`):tr("Recommended next challenge → Pre-lift scenario","Siguiente desafío recomendado → Escenario previo al izaje");
     }
     function updateProgress(){
-      const cTotal=RIG_COMPONENTS.length,dTotal=DECISIONS.length,vp=Math.min(100,viewed.size/cTotal*100),dp=mastered.size/dTotal*100,progressState=(value,total)=>value>=total?tr("Complete","Completo"):value?tr("In progress","En progreso"):tr("Not started","Sin iniciar");$("#componentProgressText").textContent=progressState(viewed.size,cTotal);$("#componentProgress").setAttribute("aria-valuemax",cTotal);$("#componentProgress").setAttribute("aria-valuenow",viewed.size);$("#componentProgress i").style.width=vp+"%";$("#decisionProgressText").textContent=progressState(mastered.size,dTotal);$("#decisionProgress").setAttribute("aria-valuemax",dTotal);$("#decisionProgress").setAttribute("aria-valuenow",mastered.size);$("#decisionProgress i").style.width=dp+"%";$("#guidedCount").textContent=tr(`${mastered.size} of ${dTotal} mastered`,`${mastered.size} de ${dTotal} dominadas`);$("#decisionStatus").textContent=`${mastered.size} / ${dTotal}`;$("#quizStatus").textContent=quizMastered?tr("100% mastered","100% dominado"):quizIndex||quizCorrect?tr("In progress","En progreso"):tr("Not started","Sin iniciar");$("#confidenceErrorStatus").textContent=highConfidenceErrors();$("#scenarioStatus").textContent=`${scenarioCallsDone.size} / ${SCENARIO_CALLS.length}`;$("#knowledgeState").textContent=mastered.size===dTotal&&quizMastered?tr("Demonstrated","Demostrado"):tr("In progress","En progreso");renderReadiness();checkCompletion();updatePrint();
+      const cTotal=RIG_COMPONENTS.length,dTotal=DECISIONS.length,vp=Math.min(100,viewed.size/cTotal*100),dp=mastered.size/dTotal*100,explored=viewed.size+mastered.size+scenarioCallsDone.size+(quizMastered?1:0),exploreTotal=cTotal+dTotal+SCENARIO_CALLS.length+1,heroPercent=Math.min(100,Math.round(explored/exploreTotal*100)),progressState=(value,total)=>value>=total?tr("Complete","Completo"):value?tr("In progress","En progreso"):tr("Not started","Sin iniciar");$("#componentProgressText").textContent=progressState(viewed.size,cTotal);$("#componentProgress").setAttribute("aria-valuemax",cTotal);$("#componentProgress").setAttribute("aria-valuenow",viewed.size);$("#componentProgress i").style.width=vp+"%";$("#decisionProgressText").textContent=progressState(mastered.size,dTotal);$("#decisionProgress").setAttribute("aria-valuemax",dTotal);$("#decisionProgress").setAttribute("aria-valuenow",mastered.size);$("#decisionProgress i").style.width=dp+"%";$("#guidedCount").textContent=tr(`${mastered.size} of ${dTotal} mastered`,`${mastered.size} de ${dTotal} dominadas`);$("#decisionStatus").textContent=`${mastered.size} / ${dTotal}`;$("#quizStatus").textContent=quizMastered?tr("100% mastered","100% dominado"):quizIndex||quizCorrect?tr("In progress","En progreso"):tr("Not started","Sin iniciar");$("#confidenceErrorStatus").textContent=highConfidenceErrors();$("#scenarioStatus").textContent=`${scenarioCallsDone.size} / ${SCENARIO_CALLS.length}`;$("#knowledgeState").textContent=mastered.size===dTotal&&quizMastered?tr("Demonstrated","Demostrado"):tr("In progress","En progreso");$("#heroSessionProgress").textContent=tr(`${heroPercent}% EXPLORED`,`${heroPercent}% EXPLORADO`);$("#heroSessionBar").style.width=heroPercent+"%";$(".hero-session-track").setAttribute("aria-valuenow",heroPercent);renderReadiness();checkCompletion();updatePrint();
     }
     function updatePrint(){
       const pc=cfg(config);$("#printConfig").textContent=tr(`Current assembly: ${pc.tile}. Governing reference: ${pc.volume}. Load shown: ${wt(weight)}.`,`Conjunto actual: ${pc.tile}. Referencia aplicable: ${pc.volume}. Carga mostrada: ${wt(weight)}.`);
@@ -982,7 +995,7 @@
     ];
     const STATIC_I18N_V5=[
       ["#instructorAgendaNav","t","Instructor agenda","Agenda del instructor"],
-      [".hero-copy","t","Follow one clear six-step course from establishing the load through the trial lift. Make each field decision, learn why it controls the lift, then test your judgment. Instructors can open a four-hour run of show from the top navigation.","Siga un curso claro de 6 pasos: desde establecer la carga hasta el izaje de prueba. Tome cada decisión de campo, aprenda por qué controla el izaje y luego ponga a prueba su criterio. Los instructores pueden abrir una agenda de cuatro horas desde la navegación superior."],
+      [".hero-copy","t","Follow one clear six-step course from establishing the load through the trial lift. Make each field decision, learn why it controls the lift, then test your judgment.","Siga un curso claro de 6 pasos: desde establecer la carga hasta el izaje de prueba. Tome cada decisión de campo, aprenda por qué controla el izaje y luego ponga a prueba su criterio."],
       [".mastery-status .status:nth-child(4) span","t","Scenes cleared","Escenas resueltas"],
       ["#learnerRecordTitle","t","Optional learner record","Registro opcional del participante"],
       [".learner-record-grid label:nth-child(1) span","t","Name","Nombre"],[".learner-record-grid label:nth-child(2) span","t","Employee ID","ID de empleado"],[".learner-record-grid label:nth-child(3) span","t","Keep this device record","Conservar este registro en el dispositivo"],
@@ -1000,11 +1013,27 @@
       ["#instructorUnlock","t","Open workspace","Abrir espacio"],
       [".glossary-list","a:aria-label","Rigging glossary definitions","Definiciones del glosario de aparejos"]
     ];
+    const STATIC_I18N_V7=[
+      [".brand-product b","t","RIGGING 101","RIGGING 101"],[".brand-product small","t","FIELD LEARNING LAB","LABORATORIO DE CAMPO"],
+      [".msc-endorsement small","t","Presented by","Presentado por"],[".msc-endorsement b","t","MSC SAFETY SOLUTIONS","MSC SAFETY SOLUTIONS"],
+      [".eyebrow","t","RIG101 · FIELD LEARNING SYSTEM","RIG101 · SISTEMA DE APRENDIZAJE EN CAMPO"],
+      [".hero h1","h","YOU ARE THE <span>RIGGER.</span>","USTED ES EL <span>APAREJADOR.</span>"],
+      [".hero-subline","t","Read the load. Build the path. Make the call.","Lea la carga. Construya la ruta. Tome la decisión."],
+      [".hero-actions [data-open-tool='explorer']","t","Explore five labs","Explorar cinco laboratorios"],
+      [".prelift-board","a:aria-label","Pre-lift training board","Tablero de capacitación previo al izaje"],
+      [".prelift-head span","t","PRE-LIFT BOARD","TABLERO PREVIO AL IZAJE"],
+      [".prelift-board dl div:nth-child(1) dt","t","Training load","Carga de práctica"],[".prelift-board dl div:nth-child(1) dd","t","Pump skid","Patín de bomba"],
+      [".prelift-board dl div:nth-child(2) dt","t","Provided weight","Peso proporcionado"],[".prelift-board dl div:nth-child(3) dt","t","Status","Estado"],[".prelift-board dl div:nth-child(3) dd","t","Planning","Planificación"],
+      [".prelift-board dl div:nth-child(4) dt","t","Mode","Modo"],[".prelift-board dl div:nth-child(4) dd","t","Training","Capacitación"],
+      [".prelift-board p","t","Make the next decision from the evidence provided.","Tome la siguiente decisión con la evidencia proporcionada."],
+      [".hero-session>div:first-child span","t","LOCAL SESSION","SESIÓN LOCAL"],[".hero-session-note","t","Progress stays on this device","El progreso queda en este dispositivo"],
+      [".hero-session-track","a:aria-label","Course progress","Progreso del curso"]
+    ];
     const langToggle=$("#langToggle");
     function applyStaticLanguage(){
       document.documentElement.lang=lang;
       document.title=tr("Rigging 101 Field Learning Lab | Crane Qualified","Rigging 101 · Laboratorio de Aprendizaje en Campo | Crane Qualified");
-      for(const [sel,mode,en,es] of [...STATIC_I18N,...STATIC_I18N_V2,...STATIC_I18N_V3,...STATIC_I18N_V4,...STATIC_I18N_V5,...STATIC_I18N_V6]){const el=document.querySelector(sel);if(!el)continue;const v=lang==="es"?es:en;if(mode==="h")el.innerHTML=v;else if(mode.startsWith("a:"))el.setAttribute(mode.slice(2),v);else el.textContent=v;}
+      for(const [sel,mode,en,es] of [...STATIC_I18N,...STATIC_I18N_V2,...STATIC_I18N_V3,...STATIC_I18N_V4,...STATIC_I18N_V5,...STATIC_I18N_V6,...STATIC_I18N_V7]){const el=document.querySelector(sel);if(!el)continue;const v=lang==="es"?es:en;if(mode==="h")el.innerHTML=v;else if(mode.startsWith("a:"))el.setAttribute(mode.slice(2),v);else el.textContent=v;}
       const glossaryItems=$$(".glossary-list>div");if(glossaryItems[2])glossaryItems[2].id="glossary-laf";if(glossaryItems[3])glossaryItems[3].id="glossary-lh";
       langToggle.textContent=lang==="es"?"English":"Español";
     }

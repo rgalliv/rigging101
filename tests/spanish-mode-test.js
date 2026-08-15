@@ -109,7 +109,7 @@ async function check(name, fn) {
       navigationLabels.join('|') === 'Navegación principal|Áreas del participante|Seis pasos del curso|Visitar Crane Qualified';
   });
   await check('hero and course render in Spanish', async () =>
-    (await txt('.hero-inner h1')).toUpperCase().includes('RUTA DE LA CARGA') &&
+    (await txt('.hero-inner h1')).toUpperCase().includes('APAREJADOR') &&
     (await txt('#journeyHeading')).includes('Seis decisiones'));
 
   // ---------- 2. English-leak scans across every tool view ----------
@@ -222,7 +222,7 @@ async function check(name, fn) {
     await page.click('#langToggle');
     await page.waitForTimeout(300);
     return english && spanish && (await page.evaluate(() => document.documentElement.lang)) === 'en' &&
-      (await txt('.hero-inner h1')).toUpperCase().includes('LOAD PATH') &&
+      (await txt('.hero-inner h1')).toUpperCase().includes('RIGGER') &&
       (await txt('#langToggle')) === 'Español';
   });
 
