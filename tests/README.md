@@ -125,3 +125,13 @@ and the boundary between application knowledge and observed field performance.
 ```bash
 node tests/competency-ux-test.js
 ```
+
+## Stage 2 hitch suite (`stage2-test.js`)
+
+Guards the Stage 2 correction: approved technical diagrams, stable responsive image treatment, no answer disclosure after a miss, the hitch-comparison remediation, confidence preservation, rating/contact/control teaching, a distinct final transfer scenario, and complete attempt-history scoring.
+
+```bash
+node tests/stage2-test.js
+```
+
+`stage2-visual-capture.js` also writes desktop/mobile English and Spanish review images plus the remediation dialog to `audit-output/stage2-correction/` for the manual visual pass.

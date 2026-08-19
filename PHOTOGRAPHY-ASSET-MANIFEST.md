@@ -108,6 +108,25 @@ Capture the same identified sling and the same load at matched scale under `asse
 
 Record the sling tag used for the set. The application must read actual ratings from the approved metadata rather than infer a universal hitch multiplier.
 
+## Internal technical hitch diagrams
+
+These are technical training diagrams, not photographs and not capacity tables. They may be used to teach configuration concepts while the commissioned hitch photography set above remains pending.
+
+- `assets/reference/hitch-types-basic.jpg`
+  - Owning organization: MSC Safety Solutions internal training library
+  - Source: Crane and Rigging Brain / `Rigging Scenerios/Rigger Cards/Hitch Types.JPG`
+  - Use: comparison of vertical and choker hitch forms
+  - English alt: Technical diagram comparing vertical and choker hitch arrangements
+  - Spanish alt: Diagrama técnico que compara arreglos de enganche vertical y ahorcado
+- `assets/reference/hitch-types-controlled-loads.jpg`
+  - Owning organization: MSC Safety Solutions internal training library
+  - Source: Crane and Rigging Brain / `Rigging Scenerios/Rigger Cards/Hitch Types2.JPG`
+  - Use: comparison of double-wrap choker, basket, and double-wrap basket concepts around pipe
+  - English alt: Technical diagram comparing double-wrap choker, basket, and double-wrap basket arrangements around pipe
+  - Spanish alt: Diagrama técnico que compara arreglos de ahorcado de doble vuelta, canasta y canasta de doble vuelta alrededor de tubos
+
+Content basis: the Crane and Rigging Brain copies of ASME B30.9 (configuration-specific ratings; basket support, balance, and control), IPT Section 1 Rigging (basket and double-wrap basket concepts, including pipe/tubing), and the NCCCO rigger reference (balanced basket loading and slippage control). Actual selection remains governed by the identified sling, manufacturer data, the load-specific plan, and qualified-person direction where required.
+
 ## Evidence board scene library
 
 Each scene requires one wide photograph, one text-equivalent evidence list, marker coordinates, verified-fact sources, assumptions, decision prompts, FNV-1a answer hashes, evaluator approval, and bilingual alt text.
