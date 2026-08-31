@@ -14,7 +14,9 @@ const OUTPUT = path.resolve(__dirname, '..', 'audit-output', 'stage2-correction'
     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
     await page.evaluate(() => localStorage.clear());
     await page.reload({ waitUntil: 'networkidle' });
-    await page.click('[data-journey-index="1"]');
+    await page.click('[data-journey-choice="1"]');
+    await page.click('#journeyCheck');
+    await page.click('#journeyNext');
     await page.locator('#learnerJourney').screenshot({ path: path.join(OUTPUT, `${view.name}-stage2-en.png`) });
     await page.click('[data-journey-choice="0"]');
     await page.click('#journeyCheck');

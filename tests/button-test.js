@@ -115,15 +115,18 @@ async function check(name, fn) {
 
   // ---------- 3. Six-step course (journey) ----------
   await page.click('#heroGuided'); await page.waitForTimeout(300);
-  // stepper buttons
-  for (let i = 0; i < 6; i++) {
-    await check(`journey stepper button ${i + 1} selects step`, async () => {
-      await page.click(`#journeyStepper button[data-journey-index="${i}"]`);
-      await page.waitForTimeout(120);
-      return (await txt('#journeyStepLabel')) === `Step ${i + 1} of 6`;
-    });
-  }
-  // back to step 1, test wrong answer then the separate Clear answer control, then master all 6
+  await check('journey stepper locks later steps until earlier ones are mastered', async () => {
+    const locked = await page.$eval('#journeyStepper button[data-journey-index="5"]', b => b.disabled);
+    await page.locator('#journeyStepper button[data-journey-index="5"]').click({ force: true }).catch(() => {});
+    await page.waitForTimeout(120);
+    return locked && (await txt('#journeyStepLabel')) === 'Step 1 of 6';
+  });
+  await check('journey stepper current step remains available', async () => {
+    await page.click('#journeyStepper button[data-journey-index="0"]');
+    await page.waitForTimeout(120);
+    return (await txt('#journeyStepLabel')) === 'Step 1 of 6';
+  });
+  // test wrong answer then the separate Clear answer control, then master all 6
   await page.click('#journeyStepper button[data-journey-index="0"]'); await page.waitForTimeout(120);
   await check('journey wrong option keeps Check stable and reveals Clear answer', async () => {
     const wrong = (ANSWERS['RIG101_d1'] + 1) % 4;
@@ -512,8 +515,10 @@ async function check(name, fn) {
     await page.click('#closeTool');
     return compare && images && inspectionMiss && inspectionCorrect && inspectionCase && hitch && bend && path && tag;
   });
-  await check('top navigation exposes the instructor agenda entry', async () =>
-    (await page.$$('#instructorAgendaNav')).length === 1 && (await txt('#instructorAgendaNav')).includes('Instructor'));
+  await check('footer exposes the instructor workspace entry outside the learner path', async () =>
+    (await page.$$('nav #instructorAgendaNav')).length === 0 &&
+    (await page.$$('footer #instructorAgendaNav')).length === 1 &&
+    (await txt('#instructorAgendaNav')).includes('Instructor'));
 
   // ---------- 9. Instructor mode ----------
   const openInstructor = async () => {

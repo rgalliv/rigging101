@@ -6,8 +6,8 @@ change for each one — 143 checks covering:
 
 - Nav & hero (Start course, Instructor mode, Open reference tools, Back-to-course bar)
 - Rigging library — all 10 configuration tiles (visible only in explorer mode, by design)
-- 6-step course — stepper, options, Check decision / Try again, Previous / Next,
-  full mastery flow for all six decisions
+- 6-step course — sequential stepper, teach-then-decide reveal, options, Check
+  decision / Clear answer, Previous / Next, full mastery flow for all six decisions
 - Upper tool tabs — direct Visual Labs, Components, Scenario, Load Share, and Assessment navigation
 - Field recognition lab — five focused topic tabs for inspection, hitch recognition,
   bend protection, load-path tracing, and tag reading, plus the Load Share handoff
@@ -23,7 +23,7 @@ change for each one — 143 checks covering:
 - Final knowledge check — miss/restart cycle, full 8-question 100% mastery,
   completion card, Copy progress summary (clipboard + toast)
 - Resource cards — all 6 learner tools open the right tool/dialog
-- Controlled Instructor route — top-navigation agenda entry, passcode gate, 5 tabs,
+- Controlled Instructor route — footer instructor-workspace entry, passcode gate, 5 tabs,
   8 agenda checkboxes + reset, 6 reveal-lens toggles, 6 launch-stage buttons,
   rubric fields + Clear rubric, Print guide, Close
 - Glossary dialog open/close
