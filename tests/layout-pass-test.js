@@ -167,6 +167,56 @@ const check = async (name, run) => {
     return before.includes('Worked example') && before.includes('What do you see? Make the field decision.') && before.includes('data-journey-step');
   });
 
+  const pageShare390 = await (await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })).newPage();
+  await pageShare390.goto(BASE, { waitUntil: 'load' });
+  await pageShare390.evaluate(() => localStorage.clear());
+  await pageShare390.reload({ waitUntil: 'load' });
+  await pageShare390.click('.resource-grid [data-open-tool="share"]');
+  await pageShare390.waitForTimeout(400);
+
+  await check('390px Size the Legs does not overflow horizontally', async () => {
+    await pageShare390.locator('#shareLab').scrollIntoViewIfNeeded();
+    const overflow = await pageShare390.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    if (overflow > 1) throw new Error(`overflow ${overflow}px`);
+    return true;
+  });
+
+  await check('390px stacks demand cards before analysis tabs', async () => {
+    const order = await pageShare390.evaluate(() => {
+      const result = document.querySelector('.share-result');
+      const tabs = document.querySelector('.share-analysis-tabs');
+      return { result: Number(getComputedStyle(result).order), tabs: Number(getComputedStyle(tabs).order) };
+    });
+    if (!(order.result < order.tabs)) throw new Error(`result order ${order.result} vs tabs ${order.tabs}`);
+    return true;
+  });
+
+  const pageShareDesk = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+  await pageShareDesk.goto(BASE, { waitUntil: 'load' });
+  await pageShareDesk.evaluate(() => localStorage.clear());
+  await pageShareDesk.reload({ waitUntil: 'load' });
+  await pageShareDesk.click('.resource-grid [data-open-tool="share"]');
+  await pageShareDesk.waitForTimeout(400);
+
+  await check('desktop Size the Legs keeps a two-pane grid and one primary play action', async () => {
+    const state = await pageShareDesk.evaluate(() => {
+      const cols = getComputedStyle(document.querySelector('.share-grid')).gridTemplateColumns.split(' ').filter(Boolean);
+      const play = document.querySelector('#playShareAnimation');
+      const apply = document.querySelector('#applyShareWeight');
+      const height = getComputedStyle(document.querySelector('#shareHeight')).gridTemplateColumns.split(' ').filter(Boolean);
+      const bar = document.querySelector('#shareSvg .stage-label');
+      const weightRow = document.querySelector('.share-weight');
+      const wrap = weightRow ? getComputedStyle(weightRow).flexWrap : '';
+      return { cols: cols.length, playClass: play?.className, applyTag: apply?.tagName, heights: height.length, bar, wrap };
+    });
+    if (state.cols !== 2) throw new Error(`expected two panes, got ${state.cols}`);
+    if (!/\bbtn-gold\b/.test(state.playClass)) throw new Error(`play class ${state.playClass}`);
+    if (state.heights !== 5) throw new Error(`hook-height columns ${state.heights}`);
+    if (state.bar) throw new Error('duplicate tension labels remain on the scene');
+    if (state.wrap !== 'nowrap') throw new Error(`load row wraps: ${state.wrap}`);
+    return true;
+  });
+
   await browser.close();
   const failed = results.filter(item => !item.pass).length;
   console.log(`\n${results.length - failed}/${results.length} passed`);

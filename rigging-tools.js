@@ -63,6 +63,10 @@
 
     const analysis = lab.querySelector(".share-analysis");
     if (analysis && !lab.querySelector(".share-analysis-tabs")) {
+      const metrics = analysis.querySelector("#shareMetrics");
+      const result = document.createElement("div");
+      result.className = "share-result";
+      if (metrics) result.appendChild(metrics);
       const children = [...analysis.children];
       const model = document.createElement("div");
       model.className = "share-tool-panel";
@@ -71,6 +75,7 @@
       children.forEach(child => model.appendChild(child));
       analysis.appendChild(model);
       analysis.insertAdjacentHTML("afterbegin", `<div class="share-analysis-tabs" role="tablist" aria-label="${text("Load-share analysis","Análisis del reparto de carga")}"></div><div class="share-tool-panel" id="sharePanelCapacity" role="tabpanel" hidden></div><div class="share-tool-panel" id="sharePanelAssumptions" role="tabpanel" hidden></div><div class="share-tool-panel" id="sharePanelExplain" role="tabpanel" hidden></div>`);
+      analysis.insertBefore(result, analysis.querySelector("#sharePanelModel"));
     }
   }
 

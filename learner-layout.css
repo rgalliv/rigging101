@@ -375,3 +375,267 @@ body[data-tool="explorer"] #explorer,body[data-tool="visual"] #visualLab{scroll-
   .btn-gold{border:2px solid Highlight}
   .btn.utility{border:1px solid CanvasText}
 }
+
+/* ----- Size the Legs / load-share lab: setup → scene → result ----- */
+.share-lab{
+  padding:28px 16px 40px;
+  overflow-x:clip;
+}
+.share-lab .share-shell{width:min(1480px,calc(100% - 16px))}
+.share-lab .share-head{
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:start;
+  gap:12px 20px;
+  margin-bottom:16px;
+}
+.share-lab .share-head h2,
+.share-head h2{
+  max-width:38rem;
+  margin:0 0 8px;
+  font-size:clamp(1.7rem,3vw,2.35rem);
+  line-height:1.12;
+  text-wrap:balance;
+}
+.share-lab .share-head p{max-width:40rem;font-size:15px;line-height:1.5}
+.share-lab .share-head-actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px 10px;
+  justify-items:end;
+}
+.share-lab .share-head .kicker,
+.share-lab .share-badge{
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--cq-text-muted);
+  font-size:11px;
+  font-weight:750;
+  letter-spacing:.06em;
+}
+.share-lab #unitToggle{
+  min-height:36px;
+  padding:6px 10px;
+  border:1px solid var(--cq-border);
+  border-radius:8px;
+  background:var(--cq-surface);
+  color:var(--cq-text-muted);
+  font-size:12px;
+  font-weight:650;
+}
+
+.share-lab .share-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
+  gap:16px;
+  align-items:start;
+}
+.share-lab .share-workbench,
+.share-lab .share-analysis{
+  min-width:0;
+}
+.share-lab .share-setup{background:#f7f9fb}
+.share-lab .share-controls{
+  grid-template-columns:minmax(17rem,.9fr) minmax(0,1.2fr)!important;
+  align-items:end!important;
+  gap:12px 16px;
+  padding:14px 16px 10px;
+}
+.share-lab .share-control:last-child{grid-column:1/-1}
+.share-lab .share-weight{
+  display:flex;
+  flex-wrap:nowrap!important;
+  align-items:center;
+  gap:8px;
+}
+.share-lab .share-weight input{
+  width:auto;
+  flex:1 1 6.5rem;
+  min-width:0;
+  max-width:9rem;
+}
+.share-lab .share-apply{
+  flex:0 0 auto;
+  min-height:36px;
+  padding:7px 12px;
+  font-size:11px;
+}
+
+.share-lab .share-height{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:6px;
+}
+.share-lab .share-height button{
+  flex:unset!important;
+  width:100%;
+  min-width:0;
+  justify-content:center;
+}
+.share-lab .share-presets{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(8.75rem,1fr));
+  gap:6px;
+  padding:10px 16px 8px;
+}
+.share-lab .share-presets > span{grid-column:1/-1;margin:0 0 2px}
+.share-lab .share-presets button{width:100%;text-align:center}
+.share-lab .share-scenario-note{min-height:0;padding:0 16px 12px}
+
+.share-lab .share-animation{
+  gap:14px;
+  padding:12px 16px;
+  background:#eef3f8;
+}
+.share-lab .share-animation .btn-gold{
+  flex:0 0 auto;
+  min-height:var(--cq-touch);
+  padding:11px 16px;
+  font-size:14px;
+}
+.share-lab .share-stage-note{top:12px}
+
+.share-lab .share-analysis{
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  overflow:hidden;
+}
+.share-lab .share-analysis-tabs{
+  order:1;
+  margin:0;
+  padding:10px 12px;
+  flex-wrap:wrap;
+}
+.share-lab .share-result{
+  order:2;
+  padding:14px 16px 8px;
+}
+.share-lab .share-metrics{
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  padding:0;
+}
+.share-lab .share-tool-panel{
+  order:3;
+  padding:4px 16px 16px;
+}
+.share-lab .share-metric{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:16px 14px 14px;
+  min-width:0;
+}
+.share-lab .share-metric small{font-size:11px;letter-spacing:.06em}
+.share-lab .share-metric b{margin:0;font-size:clamp(1.35rem,2vw,1.75rem);line-height:1.1}
+.share-lab .share-metric-facts{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.share-lab .share-metric-facts span{
+  display:grid;
+  gap:2px;
+  margin:0;
+  color:var(--cq-text);
+  font-size:13px;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+.share-lab .share-metric-facts em{
+  font-style:normal;
+  color:#5d6b7e;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.share-lab .share-metric-facts .inline-term{
+  display:inline;
+  padding:0;
+  border:0;
+  background:none;
+  color:var(--cq-accent);
+  font:inherit;
+  font-weight:850;
+}
+.share-lab .angle-band{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  gap:6px 8px;
+  margin-top:2px;
+  padding:9px 10px;
+  border:1px solid transparent;
+  border-radius:10px;
+  font-size:13px;
+  line-height:1.4;
+}
+.share-lab .angle-band b{
+  display:inline-flex!important;
+  margin:0!important;
+  padding:3px 8px;
+  border-radius:999px;
+  font-size:10px!important;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+.share-lab .angle-band.normal{border-color:#8bc8be;background:#e7f6f2;color:#175c53}
+.share-lab .angle-band.normal b{background:#18794e;color:#fff}
+.share-lab .angle-band.caution{border-color:#e0c36a;background:#fff6d6;color:#74540d}
+.share-lab .angle-band.caution b{background:#8a5200;color:#fff}
+.share-lab .angle-band.warning{border-color:#e08a5a;background:#ffefe6;color:#7f3f26}
+.share-lab .angle-band.warning b{background:#c45a2a;color:#fff}
+.share-lab .angle-band.stop{border-color:#a73333;background:#f8dddd;color:#781e1e}
+.share-lab .angle-band.stop b{background:#b42318;color:#fff}
+.share-lab .share-bar-legend{
+  grid-column:1/-1;
+  gap:14px;
+  font-size:12px;
+}
+
+@media(min-width:981px){
+  .share-lab .share-analysis{
+    position:sticky;
+    top:calc(var(--r101-sticky-top) + 10px);
+    max-height:calc(100dvh - var(--r101-sticky-top) - 20px);
+    overflow:auto;
+  }
+}
+
+@media(max-width:980px){
+  .share-lab .share-head,
+  .share-lab .share-grid{grid-template-columns:1fr}
+  .share-lab .share-head-actions{justify-content:flex-start}
+  .share-lab .share-analysis{position:static;max-height:none}
+}
+
+@media(max-width:520px){
+  .share-lab{padding:16px 8px 28px}
+  .share-lab .share-head{padding:0;margin-bottom:12px}
+  .share-lab .share-head-actions{margin-left:0}
+  .share-lab .share-controls{
+    grid-template-columns:1fr!important;
+    padding:12px;
+  }
+  .share-lab .share-control:last-child{grid-column:auto}
+  .share-lab .share-height{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .share-lab .share-presets{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px 12px 8px}
+  .share-lab .share-scenario-note{padding:0 12px 12px}
+  .share-lab .share-animation{flex-direction:column;align-items:stretch;padding:12px}
+  .share-lab .share-animation .btn{width:100%}
+  .share-lab .share-result{order:1;padding:14px 12px 8px}
+  .share-lab .share-metrics{grid-template-columns:1fr}
+  .share-lab .share-analysis-tabs{
+    order:2;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  .share-lab .share-tool-panel{order:3;padding:4px 12px 14px}
+  .share-lab .share-metric-facts{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .share-lab .share-answer-row{grid-template-columns:1fr}
+}
