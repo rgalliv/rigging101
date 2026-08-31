@@ -133,21 +133,22 @@ const check = async (name, run) => {
     return true;
   });
 
-  await check('desktop hitch step collapses the empty side column', async () => {
+  await check('desktop Next becomes the primary action after mastery', async () => {
     await pageDesk.click(`.journey-option[data-journey-choice="${answers.RIG101_d1}"]`);
     await pageDesk.click('#journeyCheck');
+    await pageDesk.waitForTimeout(200);
+    const state = await measure(pageDesk);
+    if (!/\bbtn-gold\b/.test(state.nextClass)) throw new Error(`next class ${state.nextClass}`);
+    if (/\bbtn-gold\b/.test(state.checkClass)) throw new Error(`check should drop gold after mastery: ${state.checkClass}`);
+    return true;
+  });
+
+  await check('desktop hitch step collapses the empty side column', async () => {
     await pageDesk.click('#journeyNext');
     await pageDesk.waitForTimeout(300);
     const state = await measure(pageDesk);
     if (state.cols.length !== 1) throw new Error(`expected single column for technical visual, got ${state.cols.join(' | ')}`);
     if (state.overflow > 1) throw new Error(`overflow ${state.overflow}px`);
-    return true;
-  });
-
-  await check('desktop Next becomes the primary action after mastery', async () => {
-    const state = await measure(pageDesk);
-    if (!/\bbtn-gold\b/.test(state.nextClass)) throw new Error(`next class ${state.nextClass}`);
-    if (/\bbtn-gold\b/.test(state.checkClass)) throw new Error(`check should drop gold after mastery: ${state.checkClass}`);
     return true;
   });
 

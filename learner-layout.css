@@ -28,7 +28,7 @@ h1,h2,h3,.journey-head h2,.journey-copy h3,.hero-subline,.brand-product b,.detai
   text-wrap:balance;
 }
 .nav-actions .btn{white-space:normal;max-width:16rem;line-height:1.2}
-.journey-step,.decision-step{overflow-wrap:anywhere}
+.journey-step,.decision-step{overflow-wrap:break-word}
 
 /* ----- Sticky stack: one top layer (nav). Progress stays in-flow. ----- */
 .library{position:static;top:auto}
@@ -38,9 +38,12 @@ body:not([data-tool="explorer"]) .tool-mode-bar{top:var(--r101-sticky-top)}
 .explorer,.mastery,.scenario-lab,.share-lab,.visual-lab{scroll-margin-top:calc(var(--r101-sticky-top) + 12px)}
 body[data-tool="explorer"] #explorer,body[data-tool="visual"] #visualLab{scroll-margin-top:calc(var(--r101-sticky-top) + 56px)}
 
+.journey-shell{overflow:visible}
 .journey-chrome{
   position:relative;
   z-index:2;
+  overflow:hidden;
+  border-radius:28px 28px 0 0;
   background:linear-gradient(130deg,var(--cq-brand-navy),#1d3557);
 }
 .journey-head{gap:var(--cq-space-4);padding:var(--cq-space-5) var(--cq-space-5) var(--cq-space-4)}
@@ -143,6 +146,12 @@ body[data-tool="explorer"] #explorer,body[data-tool="visual"] #visualLab{scroll-
 .journey-actions #journeyNext:not(:disabled){
   flex:1.5 1 11rem;
 }
+.journey-actions #journeyCheck.btn-gold:disabled{
+  opacity:.72;
+  filter:none;
+  background:var(--cq-accent);
+  color:var(--cq-accent-text);
+}
 .quiz-actions .btn-gold,.scenario-actions .btn-dark,.share-check .btn-dark{
   box-shadow:var(--cq-shadow-sm);
 }
@@ -191,6 +200,7 @@ body[data-tool="explorer"] #explorer,body[data-tool="visual"] #visualLab{scroll-
 .toast{
   left:50%;
   right:auto;
+  top:auto;
   bottom:calc(var(--r101-dock) + 16px + env(safe-area-inset-bottom,0px));
   z-index:80;
   max-width:min(26rem,calc(100vw - 24px));
@@ -201,7 +211,9 @@ body[data-tool="explorer"] #explorer,body[data-tool="visual"] #visualLab{scroll-
   text-align:center;
   line-height:1.4;
   pointer-events:none;
+  transform:translate(-50%,16px);
 }
+.toast.show{transform:translate(-50%,0)}
 
 @media(max-width:1180px){
   :root{--r101-nav:72px;--r101-sticky-top:72px}
@@ -247,22 +259,25 @@ body[data-tool="explorer"] #explorer,body[data-tool="visual"] #visualLab{scroll-
   .learner-nav button{min-height:44px;padding-inline:6px;font-size:13px}
   .hero h1{font-size:clamp(2.4rem,12vw,3.4rem);line-height:1.02;letter-spacing:-.03em}
   .hero-subline{overflow-wrap:break-word}
+  .journey-shell{border-radius:18px}
+  .journey-chrome{border-radius:18px 18px 0 0}
   .journey-head{
     display:grid;
     grid-template-columns:minmax(0,1fr) auto;
-    align-items:end;
+    align-items:center;
     gap:10px;
-    padding:12px 14px 10px;
+    padding:10px 12px 8px;
   }
   .journey-head .kicker{font-size:10px}
-  .journey-head h2{font-size:1.2rem;line-height:1.2;margin:4px 0 0}
+  .journey-head h2{font-size:1.05rem;line-height:1.2;margin:2px 0 0}
   .journey-head p{
-    display:-webkit-box;
-    -webkit-box-orient:vertical;
-    -webkit-line-clamp:2;
+    position:absolute;
+    width:1px;
+    height:1px;
     overflow:hidden;
-    font-size:13px;
-    line-height:1.35;
+    clip:rect(0 0 0 0);
+    clip-path:inset(50%);
+    white-space:nowrap;
   }
   .journey-progress{text-align:right}
   .journey-progress b{font-size:1.35rem}
@@ -283,16 +298,42 @@ body[data-tool="explorer"] #explorer,body[data-tool="visual"] #visualLab{scroll-
     line-height:0;
     text-align:center;
   }
-  .journey-step b{
+  .journey-step b{display:none}
+  .journey-step::before{
     display:block;
-    margin:0;
-    font-size:10px;
-    letter-spacing:.02em;
-    line-height:1.2;
-    overflow-wrap:anywhere;
+    font-size:13px;
+    font-weight:900;
+    line-height:1;
+    letter-spacing:0;
   }
+  .journey-step[data-journey-index="0"]::before{content:"1"}
+  .journey-step[data-journey-index="1"]::before{content:"2"}
+  .journey-step[data-journey-index="2"]::before{content:"3"}
+  .journey-step[data-journey-index="3"]::before{content:"4"}
+  .journey-step[data-journey-index="4"]::before{content:"5"}
+  .journey-step[data-journey-index="5"]::before{content:"6"}
+  .journey-step.mastered::before{content:"✓"}
   .journey-copy{padding:16px 14px 8px}
   .journey-copy h3{font-size:clamp(1.25rem,6vw,1.6rem);line-height:1.2}
+  .journey-visual{overflow:visible}
+  .journey-visual-caption{
+    position:static;
+    left:auto;
+    right:auto;
+    bottom:auto;
+    width:100%;
+    box-sizing:border-box;
+    padding:10px 12px;
+    background:var(--navy);
+    text-shadow:none;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:3;
+    overflow:hidden;
+  }
+  .journey-visual:after{display:none}
+  .journey-overlay .cg-mark{top:36%}
+  .journey-overlay .cg-mark small{max-width:min(160px,68vw);font-size:11px}
   .journey-option,.confidence-options button{min-height:44px}
   .journey-actions{
     position:sticky;
@@ -312,10 +353,9 @@ body[data-tool="explorer"] #explorer,body[data-tool="visual"] #visualLab{scroll-
   .journey-actions #journeyPrev{grid-column:1}
   .journey-actions #journeyCheck{grid-column:2}
   .journey-actions #journeyRetry{grid-column:1}
-  .journey-actions #journeyNext{grid-column:1/-1}
+  .journey-actions #journeyNext{grid-column:2}
   .journey-actions #journeyNext:disabled{display:none}
-  .journey-actions #journeyRetry:not([hidden]) ~ #journeyNext:not(:disabled){grid-column:2}
-  .toast{bottom:calc(var(--r101-dock) + 12px + env(safe-area-inset-bottom,0px))}
+  .journey-actions #journeyCheck.utility{display:none}
 }
 
 @media(prefers-color-scheme:dark){
