@@ -63,9 +63,11 @@
 
     const analysis = lab.querySelector(".share-analysis");
     if (analysis && !lab.querySelector(".share-analysis-tabs")) {
+      const title = analysis.querySelector("#shareAnalysisTitle");
       const metrics = analysis.querySelector("#shareMetrics");
       const result = document.createElement("div");
       result.className = "share-result";
+      if (title) result.appendChild(title);
       if (metrics) result.appendChild(metrics);
       const children = [...analysis.children];
       const model = document.createElement("div");
