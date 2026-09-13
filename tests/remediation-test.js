@@ -57,7 +57,19 @@ async function check(name, run) {
       }
       if (language === 'es-419') {
         await page.click('#navLearn');
-        await page.click('.journey-step[data-journey-index="3"]');
+        const d2Hash = (source.match(/id:"RIG101_d2".*?hash:"([a-f0-9]{8})"/) || [])[1];
+        const d3Hash = (source.match(/id:"RIG101_d3".*?hash:"([a-f0-9]{8})"/) || [])[1];
+        const d2Answer = [0,1,2,3].find(index => fnv(`${salt}:RIG101_d2:${index}`) === d2Hash);
+        const d3Answer = [0,1,2,3].find(index => fnv(`${salt}:RIG101_d3:${index}`) === d3Hash);
+        await page.click(`.journey-option[data-journey-choice="${d1Answer}"]`);
+        await page.click('#journeyCheck');
+        await page.click('#journeyNext');
+        await page.click(`.journey-option[data-journey-choice="${d2Answer}"]`);
+        await page.click('#journeyCheck');
+        await page.click('#journeyNext');
+        await page.click(`.journey-option[data-journey-choice="${d3Answer}"]`);
+        await page.click('#journeyCheck');
+        await page.click('#journeyNext');
         const hardwareAlt = await page.getAttribute('#journeyImage', 'alt');
         if (!hardwareAlt.includes('Grillete') || hardwareAlt.includes('Gancho')) return false;
       }

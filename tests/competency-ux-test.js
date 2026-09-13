@@ -40,14 +40,16 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
   await check('Learn returns to the photograph-first decision', async () => {
     await page.click('#navLearn'); await page.waitForTimeout(450);
     assert(await page.locator('#learnerJourney').isVisible(), 'course is not visible');
-    assert(await page.locator('#journeyReveal').isHidden(), 'reasoning should remain hidden before a decision');
+    assert(await page.locator('#journeyReveal').isVisible(), 'teaching should be visible before a decision');
+    assert((await page.locator('#journeyWhy').innerText()).length > 20, 'why-it-matters teaching is empty');
+    assert(await page.locator('#journeyStepper [data-journey-index="5"]').isDisabled(), 'step 6 tab should stay locked');
   });
 
-  await check('confidence is captured and a miss reveals the reasoning', async () => {
+  await check('confidence is captured and teaching stays visible after a miss', async () => {
     await page.click('[data-journey-choice="0"]');
     await page.click('#journeyConfidence [data-confidence="high"]');
     await page.click('#journeyCheck'); await page.waitForTimeout(150);
-    assert(await page.locator('#journeyReveal').isVisible(), 'reasoning did not reveal after the decision');
+    assert(await page.locator('#journeyReveal').isVisible(), 'teaching hid after the decision');
     assert(await page.locator('#journeyConfidence [data-confidence="high"]').getAttribute('aria-pressed') === 'true', 'high confidence was not retained in session state');
   });
 
