@@ -20,6 +20,8 @@ const geometry = require('../assets/blender/geometry.json');
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(process.env.BASE_URL||'http://127.0.0.1:8321/index.html');
     await page.click('#navPractice');await page.click('[data-station="spreader"]');
+    assert(await page.locator('.spreader-example').isVisible());
+    assert.match(await page.locator('.spreader-example').innerText(),/payload 10,000 lb; beam 1,000 lb; span 10 ft/);
     for(const g of geometry){
       await page.locator('#beamAngle').fill(String(g.angle));
       const img=page.locator('.beam-assembly img');
@@ -39,6 +41,7 @@ const geometry = require('../assets/blender/geometry.json');
     await page.click('#langToggle');
     await page.waitForFunction(()=>document.querySelector('.beam-assembly figcaption')?.textContent.includes('Siga la carga'));
     assert.match(await page.locator('.beam-assembly figcaption').textContent(),/Siga la carga/);
+    assert.match(await page.locator('.spreader-example').innerText(),/carga útil 10,000 lb; viga 1,000 lb/);
     await page.setViewportSize({width:390,height:844});
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     await page.locator('.beam-assembly').screenshot({path:'audit-output/blender-mobile-es.png'});

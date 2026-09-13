@@ -58,3 +58,8 @@ These are review boundaries, not unfinished software fixes:
 4. Classroom completion does not establish field qualification, authorize a lift, certify equipment, or validate spreader structural capacity. Actual manufacturer instructions and the authorized plan govern equipment-specific decisions.
 
 Merged-branch evidence: `audit-output/merged-release-tests.log` (10/10 suites), plus the Blender and required-practice screenshots. Production payload verification is a separate release step.
+
+Live review follow-up: the spreader explorer now states its payload, beam weight,
+span and fictional angle limit in both views. These values are separate from the
+independent assessment packet. The affected Blender suite passed again, including
+visible English/Spanish assumptions, all ten angles, offline and image fallback.
