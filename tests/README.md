@@ -9,6 +9,8 @@ change for each one — 143 checks covering:
 - 6-step course — stepper, options, Check decision / Try again, Previous / Next,
   full mastery flow for all six decisions
 - Upper tool tabs — direct Visual Labs, Components, Scenario, Load Share, and Assessment navigation
+- Required Skills destination, complete job-packet handoff, and a completion gate
+  that rejects conceptual-quiz completion without the skill stations
 - Field recognition lab — five focused topic tabs for inspection, hitch recognition,
   bend protection, load-path tracing, and tag reading, plus the Load Share handoff
 - Explorer reference tool — catalog filters, a guard confirming the retired
@@ -135,3 +137,25 @@ node tests/stage2-test.js
 ```
 
 `stage2-visual-capture.js` also writes desktop/mobile English and Spanish review images plus the remediation dialog to `audit-output/stage2-correction/` for the manual visual pass.
+
+## Required learning flow (`learning-flow-test.js`)
+
+Run `node tests/learning-flow-test.js` against the same local server. It completes
+all 22 cases through the rendered forms with independent reference answers. It
+verifies wrong-answer coaching, retry history, explicit help, first-attempt
+success, language-switch draft retention, saved progress, the full completion
+gate, editable geometry, spreader restrictions, all seven Spanish mobile forms,
+and deletion of progress. Review images are written under `audit-output/`.
+
+`rigging-core-test.js` now includes 17 checks, including physical/drawn angle
+agreement across 27 geometries, spreader load accounting and force values,
+combined CG, unmeasured-geometry gating, and numerical input tolerances.
+
+The existing suites retain their behavior checks. Assertions for the former
+placeholder screens and five-tab menu were updated to the active job packets,
+readable classroom tags, six-tab navigation and required skill evidence.
+
+`node tests/blender-visuals-test.js` verifies all ten Blender-rendered angle
+configurations against the calculator, image decoding, view switching, Spanish,
+and mobile overflow. Start the same local server first. Editable Blender source
+and reproduction instructions are in `assets/blender/README.md`.

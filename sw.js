@@ -1,8 +1,9 @@
 /* Rigging 101 Field Learning Lab — offline cache.
    Course shell files are network-first so returning learners receive safety
    corrections immediately. The cache remains the offline fallback. */
-const CACHE = "rig101-v27";
-const CORE = ["./", "index.html", "cq-design-tokens.css", "remediation.css", "visual-labs.css", "visual-labs.js", "rigging-tools.css", "rigging-core.js", "rigging-tools.js", "manifest.webmanifest", "assets/brand/cranequalified-dark-background.svg", "assets/brand/favicon.svg", "assets/reference/hitch-types-basic.jpg", "assets/reference/hitch-types-controlled-loads.jpg"];
+const CACHE = "rig101-v30";
+const CORE = ["./", "index.html", "cq-design-tokens.css", "remediation.css", "visual-labs.css", "visual-labs.js", "rigging-tools.css", "rigging-core.js", "rigging-tools.js", "learning-lab.js", "learning-lab.css", "manifest.webmanifest", "assets/brand/cranequalified-dark-background.svg", "assets/brand/favicon.svg", "assets/reference/hitch-types-basic.jpg", "assets/reference/hitch-types-controlled-loads.jpg"];
+CORE.push(...Array.from({length:10},(_,i)=>`assets/blender/spreader-${30+i*5}.webp`));
 const SHELL_PATHS = new Set(CORE.map(item => new URL(item, self.location.href).pathname));
 
 self.addEventListener("install", event => {
@@ -30,13 +31,15 @@ self.addEventListener("fetch", event => {
           if (response.ok) await cache.put(event.request, response.clone());
           return response;
         } catch {
-          return cached || cache.match("index.html");
+          if (cached) return cached;
+          if (event.request.mode === "navigate") return (await cache.match("index.html")) || Response.error();
+          return Response.error();
         }
       }
       const network = fetch(event.request).then(response => {
         if (response.ok) cache.put(event.request, response.clone());
         return response;
-      }).catch(() => cached);
+      }).catch(() => cached || Response.error());
       return cached || network;
     })
   );

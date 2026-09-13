@@ -153,6 +153,9 @@ async function check(name, run) {
     for (const [key,value] of [['leftSlingWll','6000'],['rightSlingWll','20000'],['leftHardwareWll','20000'],['rightHardwareWll','20000'],['topHardwareWll','20000']]) await page.fill(`[data-capacity-key="${key}"]`, value);
     await page.click('[data-apply-capacity]');
     await page.click('[data-share-panel="assumptions"]');
+    await page.selectOption('[data-evidence="weight"]','verified');
+    await page.selectOption('[data-evidence="cg"]','verified');
+    await page.selectOption('[data-evidence="geometry"]','measured');
     await page.check('[data-evidence-inspection]');
     await page.click('[data-share-panel="capacity"]');
     const statusCopy = await page.locator('.share-system-status').innerText();
@@ -270,11 +273,8 @@ async function check(name, run) {
     return reset && !(await page.evaluate(() => localStorage.getItem('cq.rig101.recordEnvelope')));
   });
 
-  await check('tool names match their dispatch cards', async () => {
-    const expected = ['Field recognition lab','Components & inspection','Pre-lift scenario','Load-share lab','Final knowledge check'];
-    const tabs = await page.locator('#toolTabs .tool-tab').allTextContents();
-    const cards = await page.locator('.resource-card strong').allTextContents();
-    return expected.every(name => tabs.includes(name) && cards.includes(name));
+  await check('short tool tabs map to their dispatch cards', async () => {
+    return await page.evaluate(()=>['visual','explorer','scenario','share','mastery'].every(id=>document.querySelector(`[data-tool-tab="${id}"]`) && document.querySelector(`.resource-card[data-open-tool="${id}"]`)));
   });
 
   await check('delete removes the device record without reload recreation', async () => {

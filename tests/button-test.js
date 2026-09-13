@@ -159,9 +159,9 @@ async function check(name, fn) {
 
   // ---------- 4. Explorer (reference tool) ----------
   await page.click('.hero-actions [data-open-tool="explorer"]'); await page.waitForTimeout(300);
-  await check('upper tool tabs expose five direct destinations', async () => {
+  await check('upper tool tabs expose six direct destinations including required practice', async () => {
     const tabs = await page.$$eval('#toolTabs [data-tool-tab]', buttons => buttons.map(button => ({ id: button.dataset.toolTab, selected: button.getAttribute('aria-selected') })));
-    return tabs.length === 5 && tabs.some(tab => tab.id === 'visual') && tabs.some(tab => tab.id === 'explorer' && tab.selected === 'true');
+    return tabs.length === 6 && tabs.some(tab => tab.id === 'practice') && tabs.some(tab => tab.id === 'visual') && tabs.some(tab => tab.id === 'explorer' && tab.selected === 'true');
   });
   await check('upper tool tabs switch tools without returning to the hub', async () => {
     await page.click('#toolTabs [data-tool-tab="share"]'); await page.waitForTimeout(250);
@@ -283,13 +283,11 @@ async function check(name, fn) {
   await page.click('#closeTool'); await page.waitForTimeout(200);
   await page.click('.resource-grid [data-open-tool="scenario"]'); await page.waitForTimeout(400);
   const evid = ['load', 'points', 'tag', 'hardware', 'protection', 'path'];
-  await check('evidence board exposes four scenes and protects pending photography slots', async () => {
-    const count = await page.$$eval('#scenarioLibraryNav [data-scenario-scene]', buttons => buttons.length);
-    await page.click('[data-scenario-scene="site"]');
-    const pending = await page.$eval('#scenarioLibraryPending', panel => panel.classList.contains('show'));
-    await page.click('[data-scenario-scene="shop"]');
-    const active = await page.$eval('#scenarioLab .scenario-grid', grid => !grid.hidden);
-    return count === 4 && pending && active;
+  await check('evidence board opens complete application packets', async () => {
+    await page.click('#scenarioJobPackets');
+    const active=await page.locator('#practiceLab').isVisible() && (await page.locator('[data-station="application"]').getAttribute('aria-current'))==='step';
+    await page.click('[data-tool-tab="scenario"]');
+    return active;
   });
   await check('scenario hotspot marker click reveals evidence', async () => {
     await page.click(`.evidence-hotspot[data-evidence="load"]`);
@@ -328,7 +326,7 @@ async function check(name, fn) {
     await page.click('[data-share-view="plan"]'); await page.waitForTimeout(100);
     const plan = await page.$eval('#shareSvg', svg => !!svg.querySelector('.share-plan-load'));
     await page.click('[data-share-view="elevation"]'); await page.waitForTimeout(100);
-    return plan && await page.$eval('#shareSvg', svg => !!svg.querySelector('image'));
+    return plan && await page.$eval('#shareSvg', svg => !!svg.querySelector('.animated-rig-line') && !svg.querySelector('image'));
   });
   await check('capacity editing marks the analysis stale', async () => {
     await page.click('[data-share-panel="capacity"]');
@@ -342,7 +340,7 @@ async function check(name, fn) {
   });
   await check('capacity Clear removes entered product ratings', async () => {
     await page.click('[data-clear-capacity]'); await page.waitForTimeout(100);
-    return (await txt('.share-system-status b')).includes('Enter identified capacities') && await page.$$eval('[data-capacity-key]', fields => fields.every(field => field.value === ''));
+    return (await page.locator('.share-capacity-check.missing').count()) === 5 && await page.$$eval('[data-capacity-key]', fields => fields.every(field => field.value === ''));
   });
   await check('evidence tab records verified versus estimated sources', async () => {
     await page.click('[data-share-panel="assumptions"]');
@@ -445,8 +443,8 @@ async function check(name, fn) {
     }
     return (await txt('#quizStatus')).includes('100%') || (await txt('#quizFeedback')).includes('100%');
   });
-  await check('completion card appears after full mastery', async () =>
-    await page.$eval('#completionCard', el => el.classList.contains('show')));
+  await check('conceptual mastery cannot skip the required skill stations', async () =>
+    await page.$eval('#completionCard', el => !el.classList.contains('show')) && (await txt('#practiceGate')).includes('0 / 22'));
   await check('"Copy progress summary" copies + toast', async () => {
     await page.click('#exportProgress'); await page.waitForTimeout(300);
     const toast = await page.$eval('#toast', el => el.classList.contains('show') && el.textContent.includes('copied'));
@@ -504,11 +502,12 @@ async function check(name, fn) {
     const hitch = (await txt('.hitch-angle output')) === '45°';
     await page.click('[data-visual-tab="bend"]');
     await page.$eval('#bendRange', input => { input.value = '2'; input.dispatchEvent(new Event('input', { bubbles: true })); });
-    const bend = (await txt('#visual-bend .metric:first-child b')) === '2.0';
+    const bend = (await txt('#visual-bend svg')).includes('D / d = 2.0');
     await page.click('[data-visual-tab="path"]'); await page.click('#pathMode');
-    const path = (await txt('#pathMode')).includes('balanced');
-    await page.click('[data-visual-tab="tags"]'); await page.click('[data-tag-field="manufacturer"]');
-    const tag = await page.$eval('[data-tag-field="manufacturer"]', button => button.classList.contains('active'));
+    const path = (await txt('#visual-path .path-status')).includes('STOP');
+    await page.click('[data-visual-tab="tags"]');
+    const tag = (await txt('#visual-tags')).includes('10,392') && (await txt('#visual-tags')).includes('FICTIONAL');
+    await page.click('#tagPractice');
     await page.click('#closeTool');
     return compare && images && inspectionMiss && inspectionCorrect && inspectionCase && hitch && bend && path && tag;
   });

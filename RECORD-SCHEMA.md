@@ -16,6 +16,8 @@ The exported JSON contains:
 - per-item attempt counts and the successful attempt number;
 - timestamped attempt events with skill, source, confidence, and correctness;
 - high-confidence error count;
+- required skill-station evidence: 22 case results across seven skills, individual
+  field correctness, timestamped attempts, coaching use, and the successful attempt;
 - time on task in milliseconds by tool;
 - schema/content versions and export timestamp; and
 - a separate `fieldPerformance` status that remains `not_observed` until an
@@ -27,3 +29,16 @@ It is not a qualification record or lift authorization.
 The copied progress summary ends with a local checksum intended only to detect
 copying errors. Because it is generated in the browser, it is not a digital
 signature, proof of authenticity, or employer verification.
+
+The September 2026 course stores station state under `skillStationsV1` inside
+the same retention-controlled envelope. Draft entries survive language changes
+and reloads. A corrected result keeps its prior attempts; using “Coach me” is
+recorded separately from independent first-attempt success. Clearing progress
+or deleting the record removes the station evidence too. The exported `practice`
+object contains results and attempt events; local drafts are not included there.
+
+Course completion requires all six guided decisions, all 22 skill checks, and
+the final knowledge check. The completion event cannot fire from the older quiz
+alone. Loading a record from an older content version invalidates the old final
+quiz result and session, because assessment content changed, while preserving
+other existing learner evidence. Practical field performance remains separate.

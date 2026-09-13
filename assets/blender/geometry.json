@@ -1,0 +1,72 @@
+[
+  {
+    "angle": 30,
+    "span_ft": 10,
+    "rise_ft": 2.8867513459481287,
+    "upper_tension_lb": 11000.000000000002,
+    "compression_lb": 9526.279441628825
+  },
+  {
+    "angle": 35,
+    "span_ft": 10,
+    "rise_ft": 3.5010376910485483,
+    "upper_tension_lb": 9588.95737591604,
+    "compression_lb": 7854.814037081631
+  },
+  {
+    "angle": 40,
+    "span_ft": 10,
+    "rise_ft": 4.1954981558863995,
+    "upper_tension_lb": 8556.481047732268,
+    "compression_lb": 6554.644759268155
+  },
+  {
+    "angle": 45,
+    "span_ft": 10,
+    "rise_ft": 4.999999999999999,
+    "upper_tension_lb": 7778.174593052022,
+    "compression_lb": 5500.000000000001
+  },
+  {
+    "angle": 50,
+    "span_ft": 10,
+    "rise_ft": 5.95876796297105,
+    "upper_tension_lb": 7179.740091327532,
+    "compression_lb": 4615.04797147504
+  },
+  {
+    "angle": 55,
+    "span_ft": 10,
+    "rise_ft": 7.140740033710572,
+    "upper_tension_lb": 6714.260238188008,
+    "compression_lb": 3851.1414601534043
+  },
+  {
+    "angle": 60,
+    "span_ft": 10,
+    "rise_ft": 8.660254037844384,
+    "upper_tension_lb": 6350.852961085884,
+    "compression_lb": 3175.4264805429425
+  },
+  {
+    "angle": 65,
+    "span_ft": 10,
+    "rise_ft": 10.722534602547793,
+    "upper_tension_lb": 6068.578554293705,
+    "compression_lb": 2564.6921198524924
+  },
+  {
+    "angle": 70,
+    "span_ft": 10,
+    "rise_ft": 13.737387097273109,
+    "upper_tension_lb": 5852.977748617517,
+    "compression_lb": 2001.8362884641135
+  },
+  {
+    "angle": 75,
+    "span_ft": 10,
+    "rise_ft": 18.66025403784439,
+    "upper_tension_lb": 5694.018992255456,
+    "compression_lb": 1473.7205583711748
+  }
+]

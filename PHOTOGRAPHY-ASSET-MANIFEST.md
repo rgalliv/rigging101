@@ -1,6 +1,6 @@
 # Rigging 101 visual learner photography manifest
 
-Status: commissioned photography required. These filenames are the binding contract for the visual-lab slots. Only evaluator-approved real photographs may replace the placeholders. Do not use generated damage, tags, component close-ups, or jobsite scenes.
+Status: this manifest specifies future commissioned photography. The September 2026 learner release uses existing sourced wire-rope illustrations, accurately dimensioned technical diagrams, and explicitly fictional classroom tags and job records. Learners no longer encounter pending-photo screens. Those classroom records are not real equipment evidence and do not claim to be photographs. Only evaluator-approved real photographs may fill the photographic sets below. Do not use generated damage, tags, component close-ups, or jobsite scenes.
 
 ## Capture standard
 

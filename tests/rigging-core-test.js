@@ -112,3 +112,46 @@ check("assumptions ledger preserves source type", () => {
 });
 
 process.stdout.write(`\n${checks} rigging-core checks passed.\n`);
+
+check("unmeasured geometry cannot reach the qualified review state", () => {
+  const result = core.solveTwoPoint({...readyInput, evidence:{...readyInput.evidence,geometry:"training"}});
+  assert.strictEqual(result.status,"geometry_required");
+});
+
+check("drawn leg angles agree with the physical model across unequal loads and spans", () => {
+  for(const span of [24,120,360]) for(const fraction of [.1,.5,.9]) for(const height of [6,90,600]) {
+    const r=core.solveTwoPoint({...readyInput,span,cgFromLeft:span*fraction,hookHeight:height});
+    const d=core.twoPointDrawing(r);
+    const left=Math.atan2(d.pickY-d.hookY,d.cgX-d.leftX)*180/Math.PI;
+    const right=Math.atan2(d.pickY-d.hookY,d.rightX-d.cgX)*180/Math.PI;
+    assert(Math.abs(left-r.geometry.leftAngle)<1e-8);
+    assert(Math.abs(right-r.geometry.rightAngle)<1e-8);
+  }
+});
+
+check("spreader example distinguishes lower demand, upper weight and axial compression", () => {
+  const r=core.solveSpreader({payload:10000,beamWeight:1000,span:10,angle:60});
+  assert.strictEqual(r.lowerTension,5000);
+  assert.strictEqual(r.supportedLoad,11000);
+  assert(Math.abs(r.upperTension-6350.85296)<.001);
+  assert(Math.abs(r.compression-3175.42648)<.001);
+  assert(Math.abs(r.rise-8.660254)<.001);
+  assert(Math.abs(r.upperLength-10)<.001);
+  const low=core.solveSpreader({payload:10000,beamWeight:1000,span:10,angle:45});
+  assert(low.upperTension>r.upperTension && low.compression>r.compression && low.rise<r.rise);
+  assert.throws(()=>core.solveSpreader({payload:10000,beamWeight:-1,span:10,angle:60}));
+  assert.throws(()=>core.solveSpreader({payload:10000,beamWeight:1000,span:10,angle:90}));
+});
+
+check("combined CG uses component weights and a common datum",()=>{
+  assert.strictEqual(core.combinedCg([{weight:3000,position:5},{weight:7000,position:8}]).cg,7.1);
+  assert.throws(()=>core.combinedCg([]));
+});
+
+check("numeric grading rejects empty or nonfinite answers and respects rounding tolerances",()=>{
+  assert(!core.numericAnswer("",0));
+  assert(!core.numericAnswer("Infinity",100));
+  assert(core.numericAnswer("6351",6350.85296,3));
+  assert(!core.numericAnswer("6350",6350.85296,.1));
+});
+process.stdout.write(`\n${checks} total calculation and geometry checks passed.\n`);

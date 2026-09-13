@@ -7,7 +7,7 @@
 
   const capacityKeys = core.REQUIRED_CAPACITY_KEYS;
   const capacities = Object.fromEntries(capacityKeys.map(key => [key, 0]));
-  const evidence = { weight: "verified", cg: "verified", geometry: "training", inspectionComplete: false };
+  const evidence = { weight: "estimated", cg: "estimated", geometry: "training", inspectionComplete: false };
   let activePanel = "model";
   let activeView = "elevation";
   let elevationMarkup = "";
@@ -33,22 +33,9 @@
   };
   const unit = () => isKg() ? "kg" : "lb";
 
-  function currentHeight() {
-    return Number(lab.querySelector("#shareHeight [aria-pressed='true']")?.dataset.shareHeight) || 90;
-  }
-
   function input() {
-    const totalLoad = Math.max(1, Number(lab.querySelector("#shareWeight")?.value) || 12000);
-    const cgPercent = Math.max(1, Math.min(99, Number(lab.querySelector("#shareCg")?.value) || 50));
-    return {
-      totalLoad,
-      span: 120,
-      cgFromLeft: 120 * cgPercent / 100,
-      hookHeight: currentHeight(),
-      capacities: { ...capacities },
-      thresholds: { elevated: elevatedThreshold / 100, critical: criticalThreshold / 100 },
-      evidence: { ...evidence }
-    };
+    return {...window.RiggingCourse.modelInput(), capacities:{...capacities},
+      thresholds:{elevated:elevatedThreshold/100,critical:criticalThreshold/100},evidence:{...evidence}};
   }
 
   function result() {
@@ -57,6 +44,11 @@
 
   function setup() {
     const stage = lab.querySelector(".share-stage");
+    if (!lab.querySelector("#shareSpan")) {
+      const geo=document.createElement("div");geo.className="share-geometry-editor";
+      geo.innerHTML=`<label for="shareSpan">${text("Pick span (in)","Separación (pulg)")}<input id="shareSpan" type="number" min="12" max="600" value="120"></label><label for="shareRise">${text("Hook rise (in)","Altura (pulg)")}<input id="shareRise" type="number" min="6" max="600" value="90"></label><button type="button" id="applyGeometry">${text("Apply dimensions","Aplicar dimensiones")}</button><p id="geometryFeedback" role="status"></p>`;
+      stage.insertAdjacentElement("beforebegin",geo);
+    }
     if (stage && !lab.querySelector(".share-viewbar")) {
       stage.insertAdjacentHTML("beforebegin", `<div class="share-viewbar"><div class="share-viewtabs" role="tablist" aria-label="${text("Diagram view","Vista del diagrama")}"></div><span class="share-freshness" id="shareFreshness" role="status"></span></div>`);
     }
@@ -134,7 +126,8 @@
       qualified_analysis_required: [text("Qualified analysis required","Se requiere análisis de una persona calificada"), text("A sling angle is below 30°. Do not use this training model as field approval.","Un ángulo de eslinga es menor de 30°. No use este modelo de práctica como aprobación de campo.")],
       verified_information_required: [text("Verify load information","Verifique la información de la carga"), text("Weight or center of gravity is still estimated.","El peso o el centro de gravedad todavía es estimado.")],
       capacity_required: [text("Enter identified capacities","Ingrese las capacidades identificadas"), text("Use the sling tag and marked hardware WLL for this exact configuration.","Use la etiqueta de la eslinga y el WLL marcado del herraje para esta configuración exacta.")],
-      inspection_required: [text("Inspection evidence required","Se requiere evidencia de inspección"), text("The numbers fit, but component condition has not been confirmed.","Los números cumplen, pero no se ha confirmado la condición de los componentes.")],
+      geometry_required: [text("Verify the geometry","Verifique la geometría"),text("Dimensions remain a classroom assumption. Verify the actual geometry before qualified review.","Las dimensiones siguen siendo una suposición del aula. Verifique la geometría real antes de la revisión calificada.")],
+      inspection_required: [text("Inspection evidence required","Se requiere evidencia de inspección"), text("The entered numbers fit, but component condition has not been confirmed.","Los números cumplen, pero no se ha confirmado la condición de los componentes.")],
       ready_for_review: [text("Inputs ready for qualified review","Entradas listas para revisión calificada"), text("No entered WLL is exceeded. This remains training support, not lift authorization.","No se excede ningún WLL ingresado. Esto sigue siendo apoyo de capacitación, no autorización de izaje.")]
     })[status];
   }
@@ -174,15 +167,15 @@
     const labels = assumptionLabels();
     const ledger = core.buildAssumptions(input(), data);
     panel.innerHTML = `<h3>${text("Separate evidence from assumptions","Separe la evidencia de las suposiciones")}</h3><p class="share-tool-intro">${text("Name the source of each important input. Estimated information is a stop signal, not permission to keep calculating toward a lift.","Nombre la fuente de cada dato importante. La información estimada es una señal para detenerse, no permiso para seguir calculando hacia un izaje.")}</p>
-      <div class="share-evidence-controls"><div class="share-evidence-row"><label for="evidence-weight">${text("Load weight source","Fuente del peso de la carga")}</label><select id="evidence-weight" data-evidence="weight"><option value="verified" ${evidence.weight === "verified" ? "selected" : ""}>${text("Verified document","Documento verificado")}</option><option value="estimated" ${evidence.weight === "estimated" ? "selected" : ""}>${text("Estimated only","Solo estimado")}</option></select></div>
-      <div class="share-evidence-row"><label for="evidence-cg">${text("CG source","Fuente del CG")}</label><select id="evidence-cg" data-evidence="cg"><option value="verified" ${evidence.cg === "verified" ? "selected" : ""}>${text("Verified document","Documento verificado")}</option><option value="estimated" ${evidence.cg === "estimated" ? "selected" : ""}>${text("Estimated only","Solo estimado")}</option></select></div>
+      <div class="share-evidence-controls"><div class="share-evidence-row"><label for="evidence-weight">${text("Load weight source","Fuente del peso de la carga")}</label><select id="evidence-weight" data-evidence="weight"><option value="verified" ${evidence.weight === "verified" ? "selected" : ""}>${text("Verified document","Documento verificado")}</option><option value="estimated" ${evidence.weight === "estimated" ? "selected" : ""}>${text("Not field-verified","Sin verificar en campo")}</option></select></div>
+      <div class="share-evidence-row"><label for="evidence-cg">${text("CG source","Fuente del CG")}</label><select id="evidence-cg" data-evidence="cg"><option value="verified" ${evidence.cg === "verified" ? "selected" : ""}>${text("Verified document","Documento verificado")}</option><option value="estimated" ${evidence.cg === "estimated" ? "selected" : ""}>${text("Not field-verified","Sin verificar en campo")}</option></select></div>
       <div class="share-evidence-row"><label for="evidence-geometry">${text("Geometry source","Fuente de la geometría")}</label><select id="evidence-geometry" data-evidence="geometry"><option value="measured" ${evidence.geometry === "measured" ? "selected" : ""}>${text("Measured in field","Medida en campo")}</option><option value="training" ${evidence.geometry === "training" ? "selected" : ""}>${text("Training default","Valor de práctica")}</option></select></div>
       <label class="share-evidence-check"><input type="checkbox" data-evidence-inspection ${evidence.inspectionComplete ? "checked" : ""}>${text("Component condition inspected and acceptable","Condición de los componentes inspeccionada y aceptable")}</label></div>
       <div class="share-ledger">${ledger.map(item => `<div class="share-ledger-row"><span>${labels[item.key] || item.key}</span><b class="share-source-pill ${item.source}">${sourceLabel(item.source)}</b></div>`).join("")}</div>`;
   }
 
   function warningText(key) {
-    return ({low_angle:text("A sling angle is below 30°. Stop and obtain qualified analysis.","Un ángulo de eslinga es menor de 30°. Deténgase y obtenga análisis calificado."),weight_unverified:text("The load weight is estimated, not verified.","El peso de la carga es estimado, no verificado."),cg_unverified:text("The center of gravity is estimated, not verified.","El centro de gravedad es estimado, no verificado."),geometry_training_default:text("The displayed geometry is a training default, not a field measurement.","La geometría mostrada es un valor de práctica, no una medición de campo."),inspection_incomplete:text("Component condition has not been documented.","No se ha documentado la condición de los componentes."),capacity_missing:text("One or more sling or hardware WLL values are missing.","Falta uno o más valores WLL de eslingas o herrajes."),component_overloaded:text("At least one entered WLL is below calculated demand. Stop.","Al menos un WLL ingresado está por debajo de la demanda calculada. Deténgase.")})[key];
+    return ({low_angle:text("A sling angle is below 30°. Stop and obtain qualified analysis.","Un ángulo de eslinga es menor de 30°. Deténgase y obtenga análisis calificado."),weight_unverified:text("The load weight has not been field-verified.","El peso de la carga es estimado, no verificado."),cg_unverified:text("The center of gravity has not been field-verified.","El centro de gravedad es estimado, no verificado."),geometry_training_default:text("The displayed geometry is a training default, not a field measurement.","La geometría mostrada es un valor de práctica, no una medición de campo."),inspection_incomplete:text("Component condition has not been documented.","No se ha documentado la condición de los componentes."),capacity_missing:text("One or more sling or hardware WLL values are missing.","Falta uno o más valores WLL de eslingas o herrajes."),component_overloaded:text("At least one entered WLL is below calculated demand. Stop.","Al menos un WLL ingresado está por debajo de la demanda calculada. Deténgase.")})[key];
   }
 
   function renderExplain(data) {
@@ -191,7 +184,7 @@
     const steps = [
       text(`Start with the supported load: ${force(data.totalLoad)}.`,`Comience con la carga soportada: ${force(data.totalLoad)}.`),
       text(`Use opposite distance. Left share = ${force(data.totalLoad)} × ${number(data.geometry.rightReach)} ÷ ${number(data.span)} = ${force(data.legs.left.verticalShare)}. Right share = ${force(data.totalLoad)} × ${number(data.geometry.leftReach)} ÷ ${number(data.span)} = ${force(data.legs.right.verticalShare)}.`,`Use la distancia opuesta. Porción izquierda = ${force(data.totalLoad)} × ${number(data.geometry.rightReach)} ÷ ${number(data.span)} = ${force(data.legs.left.verticalShare)}. Porción derecha = ${force(data.totalLoad)} × ${number(data.geometry.leftReach)} ÷ ${number(data.span)} = ${force(data.legs.right.verticalShare)}.`),
-      text(`Apply each leg’s measured geometry. Left: ${data.geometry.leftAngle.toFixed(1)}°, L/H ${data.geometry.leftFactor.toFixed(3)}. Right: ${data.geometry.rightAngle.toFixed(1)}°, L/H ${data.geometry.rightFactor.toFixed(3)}.`,`Aplique la geometría medida de cada ramal. Izquierdo: ${data.geometry.leftAngle.toFixed(1)}°, L/H ${data.geometry.leftFactor.toFixed(3)}. Derecho: ${data.geometry.rightAngle.toFixed(1)}°, L/H ${data.geometry.rightFactor.toFixed(3)}.`),
+      text(`Apply each leg’s entered geometry. Left: ${data.geometry.leftAngle.toFixed(1)}°, L/H ${data.geometry.leftFactor.toFixed(3)}. Right: ${data.geometry.rightAngle.toFixed(1)}°, L/H ${data.geometry.rightFactor.toFixed(3)}.`,`Aplique la geometría ingresada de cada ramal. Izquierdo: ${data.geometry.leftAngle.toFixed(1)}°, L/H ${data.geometry.leftFactor.toFixed(3)}. Derecho: ${data.geometry.rightAngle.toFixed(1)}°, L/H ${data.geometry.rightFactor.toFixed(3)}.`),
       text(`Calculated tension is ${force(data.legs.left.tension)} left and ${force(data.legs.right.tension)} right. Compare each demand—not an average—to identified capacity.`,`La tensión calculada es ${force(data.legs.left.tension)} a la izquierda y ${force(data.legs.right.tension)} a la derecha. Compare cada demanda —no un promedio— con la capacidad identificada.`),
       text(`Horizontal force equilibrium residual: ${force(data.equilibriumResidual)} (rounding may be visible).`,`Residual de equilibrio de fuerza horizontal: ${force(data.equilibriumResidual)} (puede verse redondeo).`)
     ];
@@ -209,6 +202,9 @@
     const svg = lab.querySelector("#shareSvg");
     if (svg && !svg.querySelector(".share-plan-load")) elevationMarkup = svg.innerHTML;
     if (svg && activeView === "elevation" && svg.querySelector(".share-plan-load") && elevationMarkup) svg.innerHTML = elevationMarkup;
+    const entered=window.RiggingCourse.modelInput();
+    lab.querySelector("#shareSpan").value=entered.span;lab.querySelector("#shareRise").value=entered.hookHeight;
+    const geo=lab.querySelector(".share-geometry-editor");geo.querySelector('label[for="shareSpan"]').firstChild.textContent=text("Pick span (in)","Separación (pulg)");geo.querySelector('label[for="shareRise"]').firstChild.textContent=text("Hook rise (in)","Altura (pulg)");geo.querySelector("button").textContent=text("Apply dimensions","Aplicar dimensiones");
     renderNavigation();
     renderFreshness();
     renderPlan(data);
@@ -245,6 +241,11 @@
   });
 
   lab.addEventListener("click", event => {
+    if(event.target.closest("#applyGeometry")) {
+      const span=Number(lab.querySelector("#shareSpan").value),rise=Number(lab.querySelector("#shareRise").value);
+      if(!Number.isFinite(span)||!Number.isFinite(rise)||span<12||span>600||rise<6||rise>600){lab.querySelector("#geometryFeedback").textContent=text("Enter span 12–600 in and rise 6–600 in.","Ingrese separación de 12–600 y altura de 6–600 pulgadas.");return;}
+      evidence.geometry="training"; window.RiggingCourse.setGeometry(span,rise); render();return;
+    }
     const view = event.target.closest("[data-share-view]");
     const panel = event.target.closest("[data-share-panel]");
     if (view) { activeView = view.dataset.shareView; render(); return; }
@@ -263,17 +264,34 @@
       return;
     }
     if (event.target.closest("#playShareAnimation") && activeView === "plan") activeView = "elevation";
+    if(event.target.closest("#applyShareWeight")) evidence.weight="estimated";
     if (event.target.closest("#applyShareWeight,[data-share-height],[data-share-preset],#resetShare")) {
-      setTimeout(() => { draftStale = false; appliedFingerprint = core.calculationFingerprint(input()); render(); }, 0);
+      setTimeout(() => { evidence.geometry="training"; draftStale = false; appliedFingerprint = core.calculationFingerprint(input()); render(); }, 0);
     }
   });
 
   lab.addEventListener("input", event => {
-    if (event.target.matches("#shareCg")) setTimeout(() => { draftStale = false; appliedFingerprint = core.calculationFingerprint(input()); render(); }, 0);
+    if (event.target.matches("#shareCg")) { evidence.cg="estimated"; }
+    if (event.target.matches("#shareCg")) setTimeout(() => { evidence.geometry="training"; draftStale = false; appliedFingerprint = core.calculationFingerprint(input()); render(); }, 0);
   });
 
   document.getElementById("langToggle")?.addEventListener("click", () => setTimeout(render, 0));
   document.getElementById("unitToggle")?.addEventListener("click", () => setTimeout(render, 0));
 
+  let lastModel=window.RiggingCourse.modelInput();
+  window.addEventListener("rigging-model-change",()=>{
+    const current=window.RiggingCourse.modelInput();
+    if(JSON.stringify(current)!==JSON.stringify(lastModel)){
+      if(current.totalLoad!==lastModel.totalLoad)evidence.weight="estimated";
+      if(current.cgFromLeft/current.span!==lastModel.cgFromLeft/lastModel.span)evidence.cg="estimated";
+      evidence.geometry="training";evidence.inspectionComplete=false;
+      lastModel=current;draftStale=false;appliedFingerprint=core.calculationFingerprint(input());
+    }
+    render();
+  });
+  window.addEventListener("rigging-model-reset",()=>{
+    capacityKeys.forEach(key=>capacities[key]=0);Object.assign(evidence,{weight:"estimated",cg:"estimated",geometry:"training",inspectionComplete:false});
+    elevatedThreshold=80;criticalThreshold=95;activePanel="model";activeView="elevation";draftStale=false;lastModel=window.RiggingCourse.modelInput();appliedFingerprint="";render();
+  });
   render();
 })();

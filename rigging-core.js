@@ -120,6 +120,7 @@
     if (checks.some(check => check.status === "overloaded")) status = "blocked";
     else if (leftAngle < 30 || rightAngle < 30) status = "qualified_analysis_required";
     else if (evidence.weight !== "verified" || evidence.cg !== "verified") status = "verified_information_required";
+    else if (evidence.geometry !== "measured") status = "geometry_required";
     else if (checks.some(check => check.status === "critical")) status = "critical_capacity";
     else if (checks.some(check => check.status === "missing")) status = "capacity_required";
     else if (!evidence.inspectionComplete) status = "inspection_required";
@@ -182,6 +183,48 @@
     });
   }
 
+  // One physical scale for both axes: the picture and its angle labels agree.
+  function twoPointDrawing(result) {
+    const scale = Math.min(510 / result.span, 260 / result.hookHeight);
+    const leftX = (700 - result.span * scale) / 2;
+    return { scale, leftX, rightX: leftX + result.span * scale,
+      cgX: leftX + result.cgFromLeft * scale, pickY: 365,
+      hookY: 365 - result.hookHeight * scale };
+  }
+
+  function solveSpreader(input) {
+    const payload = positive(input.payload, "payload");
+    const beamWeight = Number(input.beamWeight);
+    if (!Number.isFinite(beamWeight) || beamWeight < 0) throw new RangeError("beamWeight must be nonnegative");
+    const span = positive(input.span, "span");
+    const angle = positive(input.angle, "angle");
+    if (angle >= 90) throw new RangeError("spreader angle must be less than 90 degrees");
+    const radians = angle * Math.PI / 180;
+    const supportedLoad = payload + beamWeight;
+    const vertical = supportedLoad / 2;
+    return { payload, beamWeight, span, angle, supportedLoad, lowerTension: payload / 2,
+      upperVertical: vertical, upperTension: vertical / Math.sin(radians),
+      compression: vertical / Math.tan(radians), rise: span / 2 * Math.tan(radians),
+      upperLength: span / 2 / Math.cos(radians) };
+  }
+
+  function combinedCg(items) {
+    if (!Array.isArray(items) || !items.length) throw new TypeError("weight items required");
+    let weight = 0, moment = 0;
+    items.forEach(item => {
+      const w = positive(item.weight, "weight"), position = Number(item.position);
+      if (!Number.isFinite(position)) throw new TypeError("position must be finite");
+      weight += w; moment += w * position;
+    });
+    return { weight, moment, cg: moment / weight };
+  }
+
+  function numericAnswer(value, expected, tolerance = 0.01) {
+    if (typeof value === "string" && !value.trim()) return false;
+    const n = Number(value);
+    return Number.isFinite(n) && Math.abs(n - expected) <= tolerance + Number.EPSILON * Math.abs(expected);
+  }
+
   function buildAssumptions(input, result) {
     const capacities = input.capacities || {};
     const evidence = input.evidence || {};
@@ -213,6 +256,10 @@
     buildAssumptions,
     calculationFingerprint,
     slingAngleFromDimensions,
-    solveTwoPoint
+    solveTwoPoint,
+    twoPointDrawing,
+    solveSpreader,
+    combinedCg,
+    numericAnswer
   };
 });

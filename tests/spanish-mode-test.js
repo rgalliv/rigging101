@@ -165,7 +165,7 @@ async function check(name, fn) {
     await openTool('explorer');
     const tabs = (await txt('#toolTabs')).toUpperCase();
     const removed = await page.evaluate(() => !document.querySelector('#angleControls, #lafTable, #readout, #layerControls, #layerLabel, #layerScene'));
-    return removed && tabs.includes('COMPONENTES') && tabs.includes('ESCENARIO') && tabs.includes('REPARTO DE CARGA') && tabs.includes('EVALUACIÓN');
+    return removed && tabs.includes('COMPONENTES') && tabs.includes('ESCENARIO') && tabs.includes('CALCULADORA') && tabs.includes('HABILIDADES') && tabs.includes('EVALUACIÓN');
   });
   await check('kg toggle labeled and working in Spanish', async () => {
     await openTool('share');
