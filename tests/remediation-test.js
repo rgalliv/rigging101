@@ -14,8 +14,8 @@ const BASE = process.env.BASE_URL || 'http://127.0.0.1:8321/index.html';
 const EXEC = process.env.CHROMIUM_PATH;
 const results = [];
 async function check(name, run) {
-  try { if (!(await run())) throw new Error('assertion false'); results.push({ name, pass: true }); }
-  catch (error) { results.push({ name, pass: false, why: error.message }); }
+  try { if (!(await run())) throw new Error('assertion false'); results.push({ name, pass: true }); console.log(`PASS  ${name}`); }
+  catch (error) { results.push({ name, pass: false, why: error.message }); console.error(`FAIL  ${name} -> ${error.message}`); }
 }
 
 (async () => {
@@ -302,7 +302,7 @@ async function check(name, run) {
   await check('no JavaScript errors occur in remediation checks', () => errors.length === 0);
 
   const passed = results.filter(result => result.pass).length;
-  for (const result of results) console.log(`${result.pass ? 'PASS' : 'FAIL'}  ${result.name}${result.why ? ` -> ${result.why}` : ''}`);
+  console.log(`\n${results.filter(result => result.pass).length}/${results.length} passed`);
   console.log(`\n${passed}/${results.length} passed`);
   await browser.close();
   process.exit(passed === results.length ? 0 : 1);

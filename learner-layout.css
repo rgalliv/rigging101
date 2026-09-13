@@ -271,13 +271,7 @@ body[data-tool="explorer"] #explorer,body[data-tool="visual"] #visualLab{scroll-
   .journey-head .kicker{font-size:10px}
   .journey-head h2{font-size:1.05rem;line-height:1.2;margin:2px 0 0}
   .journey-head p{
-    position:absolute;
-    width:1px;
-    height:1px;
-    overflow:hidden;
-    clip:rect(0 0 0 0);
-    clip-path:inset(50%);
-    white-space:nowrap;
+    display:none;
   }
   .journey-progress{text-align:right}
   .journey-progress b{font-size:1.35rem}
