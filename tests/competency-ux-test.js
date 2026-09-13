@@ -24,10 +24,10 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
     assert(labels.join('|') === 'Learn|Practice|Tools', `unexpected learner nav: ${labels.join('|')}`);
   });
 
-  await check('Practice opens required skills below sticky chrome', async () => {
+  await check('Practice opens required evidence checks below sticky chrome', async () => {
     await page.click('#navPractice'); await page.waitForTimeout(450);
-    const state = await page.evaluate(() => ({ tool: document.body.dataset.tool, nav: document.querySelector('.nav').getBoundingClientRect().bottom, top: document.querySelector('#practiceLab').getBoundingClientRect().top }));
-    assert(state.tool === 'practice', `expected practice, got ${state.tool}`);
+    const state = await page.evaluate(() => ({ tool: document.body.dataset.tool, nav: document.querySelector('.nav').getBoundingClientRect().bottom, top: document.querySelector('#skillWorkbench').getBoundingClientRect().top }));
+    assert(state.tool === 'skills', `expected skills, got ${state.tool}`);
     assert(state.top >= state.nav, `scenario starts at ${state.top}, behind nav at ${state.nav}`);
   });
 

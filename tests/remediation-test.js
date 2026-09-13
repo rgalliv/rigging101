@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
-const source = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const source = ['index.html','course-data.js','course-runtime.js'].map(file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8')).join('\n');
 const salt = (source.match(/const SALT="([^"]+)"/) || [])[1];
 const fnv = value => { let hash = 0x811c9dc5; for (let i = 0; i < value.length; i++) { hash ^= value.charCodeAt(i); hash = Math.imul(hash, 0x01000193) >>> 0; } return hash.toString(16).padStart(8, '0'); };
 const q1Hash = (source.match(/id:"RIG101_q1".*?hash:"([a-f0-9]{8})"/) || [])[1];
@@ -95,9 +95,9 @@ async function check(name, run) {
 
   await check('Spanish detail controls and instructor workspace do not clip text', async () => {
     if (!(await page.getAttribute('html', 'lang')).startsWith('es')) await page.click('#langToggle');
-    const clippedText = () => page.evaluate(() => [...document.querySelectorAll('button, span, strong, p, li, td')]
+    const clippedText = () => page.evaluate(() => [...(document.querySelector('dialog[open]')||document.body).querySelectorAll('button, span, strong, p, li, td')]
       .filter(element => element.childElementCount === 0 && element.textContent.trim())
-      .filter(element => { const rect=element.getBoundingClientRect(),style=getComputedStyle(element); return rect.width>0&&rect.height>0&&style.visibility!=='hidden'&&element.scrollWidth>element.clientWidth+2; })
+      .filter(element => { const rect=element.getBoundingClientRect(),style=getComputedStyle(element); return rect.width>0&&rect.height>0&&!(rect.width<=1&&style.clipPath!=='none')&&style.visibility!=='hidden'&&element.scrollWidth>element.clientWidth+2; })
       .map(element => `${element.tagName.toLowerCase()}#${element.id || ''}.${typeof element.className === 'string' ? element.className.trim().replace(/\s+/g,'.') : ''}:${element.scrollWidth}-${element.clientWidth}`));
     await page.click('[data-open-tool="explorer"]');
     await page.click('.part[data-component]');
@@ -107,6 +107,7 @@ async function check(name, run) {
     await page.fill('#instructorPasscode', 'Rigging101-Facilitator-2026');
     await page.click('#instructorUnlock');
     await page.waitForTimeout(120);
+    try {
     const expected = ['Programa de la sesión','Claves de enseñanza','Estaciones prácticas','Análisis posterior','Rúbrica práctica'];
     const tabs = await page.locator('.instructor-tabs button').allTextContents();
     if (!expected.every(label => tabs.includes(label))) throw new Error(`untranslated tabs: ${tabs.join(', ')}`);
@@ -123,6 +124,7 @@ async function check(name, run) {
     const normalizedWorkspace = workspaceText.toLocaleLowerCase('es');
     if (!normalizedWorkspace.includes('registro práctico observado') || !normalizedWorkspace.includes('registro de capacitación')) throw new Error('localized rubric copy missing');
     return true;
+    } finally { await page.evaluate(()=>document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close())); }
   });
 
   await check('a second consecutive assessment miss requires related learning before retry', async () => {
@@ -165,9 +167,9 @@ async function check(name, run) {
     for (const [key,value] of [['leftSlingWll','6000'],['rightSlingWll','20000'],['leftHardwareWll','20000'],['rightHardwareWll','20000'],['topHardwareWll','20000']]) await page.fill(`[data-capacity-key="${key}"]`, value);
     await page.click('[data-apply-capacity]');
     await page.click('[data-share-panel="assumptions"]');
-    await page.selectOption('[data-evidence="weight"]','verified');
-    await page.selectOption('[data-evidence="cg"]','verified');
-    await page.selectOption('[data-evidence="geometry"]','measured');
+    await page.selectOption('[data-evidence="weight"]', 'verified');
+    await page.selectOption('[data-evidence="cg"]', 'verified');
+    await page.selectOption('[data-evidence="geometry"]', 'measured');
     await page.check('[data-evidence-inspection]');
     await page.click('[data-share-panel="capacity"]');
     const statusCopy = await page.locator('.share-system-status').innerText();
@@ -302,7 +304,6 @@ async function check(name, run) {
   await check('no JavaScript errors occur in remediation checks', () => errors.length === 0);
 
   const passed = results.filter(result => result.pass).length;
-  console.log(`\n${results.filter(result => result.pass).length}/${results.length} passed`);
   console.log(`\n${passed}/${results.length} passed`);
   await browser.close();
   process.exit(passed === results.length ? 0 : 1);

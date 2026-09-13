@@ -1,0 +1,13 @@
+{
+  "name": "rigging101",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Bilingual introductory rigging course and classroom practice",
+  "scripts": {
+    "start": "node scripts/serve.cjs",
+    "test": "node tests/run.cjs",
+    "test:unit": "node tests/rigging-core-test.js && node tests/required-skills-unit.cjs"
+  },
+  "devDependencies": { "playwright": "1.62.1" },
+  "engines": { "node": ">=22" }
+}

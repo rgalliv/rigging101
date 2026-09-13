@@ -177,7 +177,7 @@
       span: Number(input.span),
       cgFromLeft: Number(input.cgFromLeft),
       hookHeight: Number(input.hookHeight),
-      thresholds: [Number(input.thresholds?.elevated) || 0.8, Number(input.thresholds?.critical) || 0.95],
+      thresholds: [input.thresholds?.elevated ?? 0.8, input.thresholds?.critical ?? 0.95].map(Number),
       capacities: REQUIRED_CAPACITY_KEYS.map(key => Number(capacities[key]) || 0),
       evidence: [evidence.weight || "", evidence.cg || "", evidence.geometry || "", Boolean(evidence.inspectionComplete)]
     });
@@ -185,38 +185,13 @@
 
   // One physical scale for both axes: the picture and its angle labels agree.
   function twoPointDrawing(result) {
-    const scale = Math.min(510 / result.span, 260 / result.hookHeight);
-    const leftX = (700 - result.span * scale) / 2;
-    return { scale, leftX, rightX: leftX + result.span * scale,
-      cgX: leftX + result.cgFromLeft * scale, pickY: 365,
-      hookY: 365 - result.hookHeight * scale };
-  }
-
-  function solveSpreader(input) {
-    const payload = positive(input.payload, "payload");
-    const beamWeight = Number(input.beamWeight);
-    if (!Number.isFinite(beamWeight) || beamWeight < 0) throw new RangeError("beamWeight must be nonnegative");
-    const span = positive(input.span, "span");
-    const angle = positive(input.angle, "angle");
-    if (angle >= 90) throw new RangeError("spreader angle must be less than 90 degrees");
-    const radians = angle * Math.PI / 180;
-    const supportedLoad = payload + beamWeight;
-    const vertical = supportedLoad / 2;
-    return { payload, beamWeight, span, angle, supportedLoad, lowerTension: payload / 2,
-      upperVertical: vertical, upperTension: vertical / Math.sin(radians),
-      compression: vertical / Math.tan(radians), rise: span / 2 * Math.tan(radians),
-      upperLength: span / 2 / Math.cos(radians) };
+    const drawing=layoutTwoPoint(result);
+    return {...drawing,cgX:drawing.hookX};
   }
 
   function combinedCg(items) {
-    if (!Array.isArray(items) || !items.length) throw new TypeError("weight items required");
-    let weight = 0, moment = 0;
-    items.forEach(item => {
-      const w = positive(item.weight, "weight"), position = Number(item.position);
-      if (!Number.isFinite(position)) throw new TypeError("position must be finite");
-      weight += w; moment += w * position;
-    });
-    return { weight, moment, cg: moment / weight };
+    const result=combinedCG(items);
+    return {...result,cg:result.position};
   }
 
   function numericAnswer(value, expected, tolerance = 0.01) {
@@ -251,14 +226,51 @@
     return entries;
   }
 
+  // Both axes use the same scale. The diagram and force solver share physical inputs.
+  function layoutTwoPoint(input) {
+    const result = solveTwoPoint(input);
+    const scale = Math.min(515 / result.span, 290 / result.hookHeight);
+    const leftX = (700 - result.span * scale) / 2;
+    const pickY = 365;
+    return { scale, leftX, rightX: leftX + result.span * scale, pickY,
+      hookX: leftX + result.cgFromLeft * scale, hookY: pickY - result.hookHeight * scale };
+  }
+
+  function combinedCG(items) {
+    if (!Array.isArray(items) || !items.length) throw new TypeError("At least one item is required");
+    let weight = 0, moment = 0;
+    items.forEach(item => {
+      const w = positive(item.weight, "weight"), x = Number(item.position);
+      if (!Number.isFinite(x)) throw new TypeError("position must be finite");
+      weight += w; moment += w * x;
+    });
+    return { weight, moment, position: moment / weight };
+  }
+
+  // Ideal symmetric static spreader: vertical lower legs, level beam, centered weight.
+  // Compression is a force result, never a structural capacity or buckling check.
+  function solveSpreader(input) {
+    const payload = positive(input.payload, "payload"), span = positive(input.span, "span");
+    const beamWeight = Number(input.beamWeight), angle = positive(input.angle, "angle");
+    if (!Number.isFinite(beamWeight) || beamWeight < 0) throw new RangeError("beamWeight cannot be negative");
+    if (angle >= 90) throw new RangeError("upper angle must be below 90 degrees");
+    const radians = angle * Math.PI / 180, upperShare = (payload + beamWeight) / 2;
+    return { payload, span, beamWeight, angle, hookLoad: payload + beamWeight, supportedLoad: payload + beamWeight,
+      lowerTension: payload / 2, upperShare, upperVertical: upperShare, upperTension: upperShare / Math.sin(radians),
+      compression: upperShare / Math.tan(radians), rise: span / 2 * Math.tan(radians),
+      upperLength: span / 2 / Math.cos(radians) };
+  }
+
   return {
+    layoutTwoPoint,
+    combinedCG,
+    solveSpreader,
     REQUIRED_CAPACITY_KEYS,
     buildAssumptions,
     calculationFingerprint,
     slingAngleFromDimensions,
     solveTwoPoint,
     twoPointDrawing,
-    solveSpreader,
     combinedCg,
     numericAnswer
   };

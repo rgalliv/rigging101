@@ -25,7 +25,7 @@ const { chromium } = require('playwright');
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8321/index.html';
 
 // Derive the answer key at runtime from the FNV-1a hashes embedded in index.html.
-const src = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const src = ['index.html','course-data.js','course-runtime.js'].map(file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8')).join('\n');
 const SALT = (src.match(/const SALT="([^"]+)"/) || [])[1];
 const fnv = s => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); };
 const ANSWERS = {};
