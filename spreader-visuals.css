@@ -1,0 +1,17 @@
+/* Required learner practice. Shares the approved CraneQualified palette. */
+.beam-view-controls{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.beam-view-controls button{border:1px solid #769bbf;border-radius:8px;padding:10px 16px;background:#fff;color:#001b3f;font:inherit;cursor:pointer}
+.beam-view-controls button[aria-pressed="true"]{background:#001b3f;color:#fff}
+.beam-view-controls button:focus-visible{outline:3px solid #b87812;outline-offset:3px}
+.beam-assembly{margin:14px 0 18px;border-radius:14px;overflow:hidden;background:#001b3f;color:#fff}
+.beam-assembly img{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:#071222}
+.beam-assembly figcaption{padding:16px 20px;display:grid;gap:8px;font-size:14px;line-height:1.5}
+.beam-assembly figcaption strong{font-size:18px;color:#e7cd82}
+#spreaderExplore[data-view="assembly"]>.practice-diagram,#spreaderExplore[data-view="diagram"]>.beam-assembly{display:none}
+
+#spreaderExplore{margin:24px 0;padding:20px;border:1px solid #bacbdb;border-radius:12px;background:#f3f7fb;color:#172b46}
+#spreaderExplore .practice-diagram{display:block;width:100%;max-height:420px;border-radius:12px;background:#0c203c}
+#spreaderExplore[data-view="assembly"]>.practice-diagram,#spreaderExplore[data-view="diagram"]>.beam-assembly{display:none}
+#spreaderExplore .practice-field{display:grid;gap:8px;font-weight:700}
+#spreaderExplore input{width:100%;min-height:44px}
+#spreaderExplore .practice-tip{font-size:14px;line-height:1.6;margin-top:16px}

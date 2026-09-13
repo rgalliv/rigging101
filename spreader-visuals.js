@@ -1,0 +1,29 @@
+/* Blender assembly and force views retained from the learner-flow release. */
+(() => {
+  'use strict';
+  const core=window.RiggingTrainingCore;
+  const $=s=>document.querySelector(s);
+  const pair=(en,es)=>[en,es];
+  const tr=value=>value[document.documentElement.lang.startsWith('es')?1:0];
+  const table=(headers,rows)=>'<div class="practice-table-wrap"><table><thead><tr>'+headers.map(h=>'<th scope="col">'+tr(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+  let beamAngle=60;
+  let beamView = "assembly";
+  function renderBeam(){
+    const host=$("#spreaderExplore");if(!host)return;
+    const r=core.solveSpreader({payload:10000,beamWeight:1000,span:10,angle:beamAngle});
+    const scale=Math.min(38,170/r.rise),x=350-5*scale,y=270,h=y-r.rise*scale;
+    host.innerHTML=`<label class="practice-field" for="beamAngle"><span>${tr(pair("Compare upper angle from horizontal","Compare ángulo superior desde horizontal"))}: <output>${beamAngle}°</output></span><input id="beamAngle" type="range" min="30" max="75" step="5" value="${beamAngle}"></label><svg class="practice-diagram" viewBox="0 0 700 440" role="img" aria-label="${tr(pair("Symmetric spreader force model, geometry to scale","Modelo simétrico de fuerzas, geometría a escala"))}"><path d="M${x} ${y} L350 ${h} L${700-x} ${y}" fill="none" stroke="#e7cd82" stroke-width="6"/><path d="M${x} ${y} V365 M${700-x} ${y} V365" stroke="#7fd1c2" stroke-width="5"/><rect x="${x}" y="${y-7}" width="${10*scale}" height="14" fill="#769bbf"/><rect x="${x-20}" y="365" width="${10*scale+40}" height="28" fill="#456383"/><text x="350" y="32" text-anchor="middle" fill="white" font-size="17">${tr(pair("Payload 10,000 lb • beam 1,000 lb","Carga 10,000 lb • viga 1,000 lb"))}</text><text x="350" y="420" text-anchor="middle" fill="white" font-size="17">${tr(pair("Lower slings: 5,000 lb each","Eslingas inferiores: 5,000 lb cada una"))}</text></svg>${table([pair("Upper tension / leg","Tensión superior / ramal"),pair("Compression","Compresión"),pair("Rise","Altura")],[[`${Math.round(r.upperTension).toLocaleString()} lb`,`${Math.round(r.compression).toLocaleString()} lb`,`${r.rise.toFixed(2)} ft`]])}<div class="practice-tip">${beamAngle<45?tr(pair("MATHEMATICAL COMPARISON ONLY. The classroom certificate requires at least 45°. This setting is not a permitted configuration.","SOLO COMPARACIÓN MATEMÁTICA. El certificado del aula exige mínimo 45°. Esta configuración no está permitida.")):tr(pair("Less headroom increases upper tension and compression. Forces alone do not establish the device rating; use the applicable configuration table.","Menor altura aumenta tensión superior y compresión. Las fuerzas solas no establecen capacidad; use la tabla de configuración aplicable."))}</div>`;
+    host.dataset.view=beamView;
+    host.insertAdjacentHTML("afterbegin",`<div class="beam-view-controls" role="group" aria-label="${tr(pair("Spreader view","Vista del separador"))}"><button type="button" data-beam-view="assembly" aria-pressed="${beamView==="assembly"}">${tr(pair("3D assembly","Conjunto 3D"))}</button><button type="button" data-beam-view="diagram" aria-pressed="${beamView==="diagram"}">${tr(pair("Force diagram","Diagrama de fuerzas"))}</button></div>`);
+    host.querySelector(".practice-diagram").insertAdjacentHTML("beforebegin",`<figure class="beam-assembly"><img src="assets/blender/spreader-${beamAngle}.webp" width="1000" height="850" alt="${tr(pair(`Blender classroom model at ${beamAngle} degrees: gold upper slings meet above a blue spreader, teal lower slings hang vertically to a centered load, orange arrows point inward along the bar.`,`Modelo de aula Blender a ${beamAngle} grados: eslingas superiores doradas sobre un separador azul, eslingas inferiores verdes verticales a una carga centrada y flechas naranjas hacia dentro de la barra.`))}"><figcaption><strong>${tr(pair("Trace the load upward","Siga la carga hacia arriba"))}</strong><span>${tr(pair("Teal: lower tension · Gold: upper tension · Orange: inward compression","Verde: tensión inferior · Dorado: tensión superior · Naranja: compresión hacia dentro"))}</span><span>${tr(pair("Illustrative 3D model. Attachment centers follow the selected geometry; connection shapes are symbolic. Perspective changes the apparent angle—use the force diagram to read geometry. Camera framing adjusts to fit.","Modelo 3D ilustrativo. Los centros de conexión siguen la geometría seleccionada; las conexiones son simbólicas. La perspectiva cambia el ángulo aparente: use el diagrama para leer la geometría. El encuadre se ajusta al conjunto."))}</span></figcaption></figure>`);
+    const assemblyImage=host.querySelector(".beam-assembly img");
+    assemblyImage.onerror=()=>{
+      host.dataset.view="diagram";
+      host.querySelectorAll("[data-beam-view]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.beamView==="diagram")));
+      if(!host.querySelector(".beam-image-status"))host.querySelector(".beam-view-controls").insertAdjacentHTML("afterend",`<p class="beam-image-status" role="status">${tr(pair("The 3D image is unavailable. The force diagram and calculations are still available. Select 3D assembly to retry when connected.","La imagen 3D no está disponible. El diagrama de fuerzas y los cálculos siguen disponibles. Seleccione Conjunto 3D para reintentar cuando tenga conexión."))}</p>`);
+    };
+    host.querySelectorAll("[data-beam-view]").forEach(button=>button.onclick=()=>{beamView=button.dataset.beamView;renderBeam();host.querySelector(`[data-beam-view="${beamView}"]`).focus({preventScroll:true});});
+    $("#beamAngle").oninput=e=>{beamAngle=Number(e.target.value);renderBeam();$("#beamAngle").focus({preventScroll:true});};
+  }
+  window.RiggingSpreader={render:renderBeam};
+})();

@@ -14,7 +14,7 @@ const geometry = require('../assets/blender/geometry.json');
     assert(Math.abs(r.compression-g.compression_lb)<1e-8);
     assert(fs.statSync(path.join(__dirname,`../assets/blender/spreader-${g.angle}.webp`)).size>1000);
   }
-  const browser=await chromium.launch();
+  const browser=await chromium.launch(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{});
   try{
     const page=await browser.newPage({viewport:{width:1365,height:1000}});
     const errors=[];page.on('pageerror',e=>errors.push(e.message));

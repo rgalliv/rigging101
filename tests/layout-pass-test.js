@@ -5,7 +5,7 @@ const path = require('path');
 
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8321/index.html';
 const EXEC = process.env.CHROMIUM_PATH;
-const source = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const source = ['index.html','course-data.js','course-runtime.js'].map(file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8')).join('\n');
 const salt = (source.match(/const SALT="([^"]+)"/) || [])[1];
 const fnv = value => { let hash = 0x811c9dc5; for (let i = 0; i < value.length; i++) { hash ^= value.charCodeAt(i); hash = Math.imul(hash, 0x01000193) >>> 0; } return hash.toString(16).padStart(8, '0'); };
 const answers = {};
@@ -163,7 +163,7 @@ const check = async (name, run) => {
   });
 
   await check('no new lesson strings were introduced by the layout pass', async () => {
-    const before = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+    const before = ['index.html','course-data.js','course-runtime.js'].map(file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8')).join('\n');
     return before.includes('Worked example') && before.includes('What do you see? Make the field decision.') && before.includes('data-journey-step');
   });
 

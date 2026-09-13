@@ -6,6 +6,6 @@ The attachment span is 10 feet. The upper connection rises `(span/2) tan(angle)`
 
 Gold shows upper slings; teal shows lower slings; orange arrows show opposing inward compression on the bar. Arrow length does not encode force magnitude. Perspective angles differ from true angles; the adjacent 2D force view is the geometric reference. Camera framing changes to keep the assembly visible. The existing calculator supplies all learner-facing values and configuration limits.
 
-Content basis: Crane and Rigging Brain, `IPT Section 1 Rigging Section -1.docx` (Spreader Beams), and the existing reviewed symmetric-spreader classroom model in `learning-lab.js` / `rigging-core.js`. All 10 rendered configurations are cross-checked against that calculator by `tests/blender-visuals-test.js`.
+Content basis recorded by the original asset author: Crane and Rigging Brain, `IPT Section 1 Rigging Section -1.docx` (Spreader Beams). The assembly explorer is now in `spreader-visuals.js`, using the shared symmetric-spreader model in `rigging-core.js`. All 10 rendered configurations are cross-checked against that calculator by `tests/blender-visuals-test.js`.
 
 This set contains conceptual assembly illustrations only. It does not replace the commissioned inspection photographs described in `PHOTOGRAPHY-ASSET-MANIFEST.md`.
